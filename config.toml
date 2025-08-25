@@ -1,0 +1,58 @@
+admin_ids = [961273339]
+logging_chat_ids = [-1002618523312]
+
+[session_import]
+# A browser to import session from ("firefox" | "librewolf" | "safari"); leave empty to skip importing from browser
+browser = "firefox"
+# If you can't (or don't want to) import session from your browser, please copy and paste the following cookie values from the browser's storage
+username = ""
+csrftoken = ""
+sessionid = ""
+ds_user_id = ""
+mid = ""
+ig_did = ""
+
+[messages]
+# All the non-error public messages
+# Must be strings; {bot_name} and {bot_username} are available; certain HTML tags are available (https://core.telegram.org/bots/api#html-style); 0-1024 characters after entities parsing
+start = "Hi, welcome to {bot_name}!\nCurrently the bot is private, which means only authorized administrators can enable it for certain chats. However, it's open-source, so you can host your own instance at any time! See https://github.com/denyshon/tg-load"
+help = "Tired of opening every single link sent by your friends? We too. From now, you don't need that.\nJust add {bot_name} to your group, /enable it, and get all the supported content directly to your chat. {bot_name} initializes downloads automatically, but if you want to attract its attention to a specific message, just mention {bot_username} replying to that message.\nCurrently supported: Instagram, YouTube Music, YouTube (audio and YouTube Shorts).\nAdditional commands:\n/enable_captions - Enable Instagram caption downloading in this chat\n/disable_captions - Disable Instagram caption downloading in this chat\n/uncompressed - Get uncompressed media from Instagram (uses links in your message and in the message you're replying to)\n/audio - Get audio from YouTube and YouTube Music (uses links in your message and in the message you're replying to)"
+not_enabled = "Sorry, {bot_name} is not enabled in this chat. Please first use /enable"
+private_not_enabled = "Sorry, {bot_name} is not enabled in this chat."
+banned = "Sorry, you are banned from using {bot_name}."
+no_links = "fuck off"
+not_admin = "Sorry, this command can be used by an authorized administrator only. But you can host your own instance at any time! See https://github.com/denyshon/tg-load"
+[messages.enable]
+no_need = "{bot_name} is already enabled in this chat."
+success = "{bot_name} is now enabled in this chat!"
+[messages.disable]
+no_need = "{bot_name} is already disabled in this chat."
+success = "{bot_name} is now disabled in this chat :("
+[messages.disable_captions]
+no_need = "Captions are already disabled in this chat."
+success = "Captions are now disabled in this chat."
+[messages.enable_captions]
+no_need = "Captions are already enabled in this chat."
+success = "Captions are now enabled in this chat!"
+
+[admin_messages]
+# All the non-error admin messages
+# Must be strings; {bot_name} and {bot_username} are available; certain HTML tags are available (https://core.telegram.org/bots/api#html-style); 0-1024 characters after entities parsing
+admin_commands = "Available admin commands:\n<code>/enable_chats</code> [chat_id] [chat_id] … [chat_id] - Enable chats by ids\n<code>/disable_chats</code> [chat_id] [chat_id] … [chat_id] - Disable chats by ids\n<code>/ban_users</code> [user_id] [user_id] … [user_id] - Ban users by id (prevent from using the bot)\n<code>/unban_users</code> [user_id] [user_id] … [user_id] - Unban users by id (allow using the bot)"
+[admin_messages.enable_chats]
+no_need = "The bot is already enabled in the chat <code>{}</code>."
+success = "The bot has been enabled in the chat <code>{}</code>."
+arg_not_int = "The given id <code>{}</code> is not an integer"
+[admin_messages.disable_chats]
+no_need = "The bot is already disabled in the chat <code>{}</code>."
+success = "The bot has been disabled in the chat <code>{}</code>."
+arg_not_int = "The given id <code>{}</code> is not an integer"
+[admin_messages.ban_users]
+no_need = "The user <code>{}</code> is already banned."
+success = "The user <code>{}</code> has been banned."
+arg_not_int = "The given id <code>{}</code> is not an integer"
+arg_admin = "Sorry, you can't ban an admin :)"
+[admin_messages.unban_users]
+no_need = "The user <code>{}</code> is already not banned."
+success = "The user <code>{}</code> has been unbanned."
+arg_not_int = "The given id <code>{}</code> is not an integer"
