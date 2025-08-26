@@ -25,15 +25,17 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
 1. Install the latest version of Python from the [official website](https://www.python.org/downloads/) with PIP included.
 2. [Install Git](https://github.com/git-guides/install-git).
 3. In the system command prompt (in your desired directory), run the following as an administrator:<br/>
-   ```pip install git+https://github.com/denyshon/tg-load```
-4. Install https://github.com/denyshon/python-youtube-music/tree/tg-load with YouTubeMusicDL support as described in its README.
-5. [Download an ffmpeg custom build](https://github.com/yt-dlp/FFmpeg-Builds) for [yt-dlp](https://github.com/yt-dlp/yt-dlp), that corresponds to your yt-dlp version.
-6. Create a `.env` file with the following structure:
+   ```
+   pip install git+https://github.com/denyshon/tg-load
+   ```
+5. Install https://github.com/denyshon/python-youtube-music/tree/tg-load with YouTubeMusicDL support as described in its README.
+6. [Download an ffmpeg custom build](https://github.com/yt-dlp/FFmpeg-Builds) for [yt-dlp](https://github.com/yt-dlp/yt-dlp), that corresponds to your yt-dlp version.
+7. Create a `.env` file with the following structure:
    ```
    TOKEN=''
    FFMPEG_LOCATION=''
    ```
-7. Specify your bot's token and the ffmpeg custom build location in the .env file. The path may be absolute or relative, and must lead to the `bin` folder. Also, make sure to escape `\`. For example, if you placed ffmpeg in your working directory, the location will be `ffmpeg/bin` (or `ffmpeg\\bin` for Windows).
+8. Specify your bot's token and the ffmpeg custom build location in the .env file. The path may be absolute or relative, and must lead to the `bin` folder. Also, make sure to escape `\`. For example, if you placed ffmpeg in your working directory, the location will be `ffmpeg/bin` (or `ffmpeg\\bin` for Windows).
 
 
 ## Usage
