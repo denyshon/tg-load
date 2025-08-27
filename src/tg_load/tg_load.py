@@ -1600,7 +1600,7 @@ def main():
     )
     
     # prepare envs and configs
-    env.read_env()=
+    env.read_env()
     with open("config.toml", 'rb') as config_file:
         config = tomllib.load(config_file)
 
