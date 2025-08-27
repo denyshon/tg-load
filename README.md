@@ -30,7 +30,7 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
    ```
 5. Install https://github.com/denyshon/python-youtube-music/tree/tg-load with YouTubeMusicDL support as described in its README.
 6. [Download an ffmpeg custom build](https://github.com/yt-dlp/FFmpeg-Builds) for [yt-dlp](https://github.com/yt-dlp/yt-dlp), that corresponds to your yt-dlp version.
-7. Create a `.env` file with the following structure:
+7. In the project root folder, create a `.env` file with the following structure:
    ```
    TOKEN=''
    FFMPEG_LOCATION=''
@@ -38,16 +38,38 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
 8. Specify your bot's token and the ffmpeg custom build location in the .env file. The path may be absolute or relative, and must lead to the `bin` folder. Also, make sure to escape `\`. For example, if you placed ffmpeg in your working directory, the location will be `ffmpeg/bin` (or `ffmpeg\\bin` for Windows).
 
 
-## Usage
-- You can specify the texts of the messages sent by the bot in `config.toml`. Make sure to read the comments there.
-- You may also want to set a command list for your bot. You can specify it in `commands.txt`, and then set the commands by running `set_commands.py`.
+## Starting
+- You can specify the texts of the messages sent by the bot in `src/tg_load/settings/config.toml`. Make sure to read the comments there.
+- You may also want to set a command list for your bot. You can specify it in `src/tg_load/settings/commands.txt`, and then set the commands by running `src/tg_load/set_commands.py`.
   - Each of the commands must be in a separate line, followed by another line with the description.
   - If you installed *tg-load* using a package manager, you can also execute
     ```
     tg-load-set-commands
     ```
-- To run the bot, simply run `tg_load.py`.
+- To run the bot, simply run `src/tg_load/tg_load.py`.
   - If you installed *tg-load* using a package manager, you can also execute
   ```
   tg-load
   ```
+
+
+## Usage
+### Commands
+- `/start`<br/>
+  Get started
+- `/help`<br/>
+  Find out more about the bot
+- `/enable` [*admin only*]<br/>
+  Enable the bot in the chat
+- `/disable` [*admin only*]<br/>
+  Disable the bot in the chat
+- `/enable_captions`<br/>
+  Enable Instagram caption downloading in the chat
+- `/disable_captions`<br/>
+  Disable Instagram caption downloading in the chat
+- `/uncompressed`<br/>
+  Get uncompressed media from Instagram (*uses links in your message and in the message you're replying to*)
+- `/audio`<br/>
+  Get audio from YouTube and YouTube Music (*uses links in your message and in the message you're replying to*)
+- `/admin_commands` [*admin only*]<br/>
+  Get a list of available admin commands
