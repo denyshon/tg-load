@@ -1601,7 +1601,7 @@ def main():
     
     # prepare envs and configs
     env.read_env()
-    with open("config.toml", 'rb') as config_file:
+    with open("settings/config.toml", 'rb') as config_file:
         config = tomllib.load(config_file)
 
     L_captions = instaloader.Instaloader(
