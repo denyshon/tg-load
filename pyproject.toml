@@ -29,3 +29,6 @@ packages = ["src/tg_load"]
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.setuptools.package-data]
+"tg_load.settings" = ["config.toml"]
