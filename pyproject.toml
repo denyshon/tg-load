@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tg-load"
+version = "1.0.0"
+description = "A Telegram bot for downloading and sending content from links"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+  { name = "denyshon", email = "denyshon@outlook.com" }
+]
+dependencies = [
+    "python-telegram-bot==22.3",
+    "environs>=14.2.0",
+    "instaloader @ git+https://github.com/denyshon/instaloader.git@tg-load",
+    "browser-cookie3 @ git+https://github.com/denyshon/browser_cookie3.git@tg-load",
+    "yt-dlp>=2025.8.22"
+]
+requires-python = ">=3.13"
+
+[project.scripts]
+tg-load = "tg_load.tg_load:main"
+tg-load-set-commands = "tg_load.set_commands:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tg_load"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
