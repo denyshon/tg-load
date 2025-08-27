@@ -1,1 +1,5 @@
 .env
+active_chat_ids.txt
+no_captions_chat_ids.txt
+banned_user_ids.txt
+ffmpeg

@@ -1587,6 +1587,15 @@ async def unban_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    global config
+    global L_captions
+    global L_no_captions
+    global active_chat_ids
+    global no_captions_chat_ids
+    global banned_user_ids
+
+    PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[2]
+    
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=logging.WARNING
@@ -1594,7 +1603,8 @@ def main():
     
     # prepare envs and configs
     env.read_env()
-    with open("config.toml", 'rb') as config_file:
+    config_path = PROJECT_ROOT / "config.toml"
+    with open(config_path, 'rb') as config_file:
         config = tomllib.load(config_file)
 
     L_captions = instaloader.Instaloader(
@@ -1642,9 +1652,11 @@ def main():
     for L in [L_captions, L_no_captions]:
         L.context.error_catcher = MethodType(error_catcher, L.context)
 
-    active_chat_ids = Preference("active_chat_ids.txt", loop)
-    no_captions_chat_ids = Preference("no_captions_chat_ids.txt", loop)
-    banned_user_ids = Preference("banned_user_ids.txt", loop)
+    active_chat_ids_path, no_captions_chat_ids_path, banned_user_ids_path = \
+        [HOME / name for name in ["active_chat_ids.txt", "no_captions_chat_ids.txt", "banned_user_ids.txt"]]
+    active_chat_ids = Preference(active_chat_ids_path, loop)
+    no_captions_chat_ids = Preference(no_captions_chat_ids_path, loop)
+    banned_user_ids = Preference(banned_user_ids_path, loop)
     
     application.add_handlers([
         CommandHandler('start', start),
