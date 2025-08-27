@@ -1598,10 +1598,13 @@ def main():
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=logging.WARNING
     )
+
+    DIRECTORY = pathlib.Path(__file__).resolve().parents[0]
+    ROOT_DIRECTORY = DIRECTORY.parents[1] if "src" in str(DIRECTORY) else DIRECTORY
     
     # prepare envs and configs
     env.read_env()
-    config_path = os.path.join("settings", "config.toml")
+    config_path = os.path.join(DIRECTORY, "settings", "config.toml")
     with open(config_path, 'rb') as config_file:
         config = tomllib.load(config_file)
 
@@ -1649,9 +1652,9 @@ def main():
     for L in [L_captions, L_no_captions]:
         L.context.error_catcher = MethodType(error_catcher, L.context)
 
-    active_chat_ids = Preference("active_chat_ids.txt", loop)
-    no_captions_chat_ids = Preference("no_captions_chat_ids.txt", loop)
-    banned_user_ids = Preference("banned_user_ids.txt", loop)
+    active_chat_ids = Preference(os.path.join(ROOT_DIRECTORY, "active_chat_ids.txt"), loop)
+    no_captions_chat_ids = Preference(os.path.join(ROOT_DIRECTORY, "no_captions_chat_ids.txt"), loop)
+    banned_user_ids = Preference(os.path.join(ROOT_DIRECTORY, "banned_user_ids.txt"), loop)
     
     application.add_handlers([
         CommandHandler('start', start),
