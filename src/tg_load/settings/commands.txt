@@ -1,0 +1,18 @@
+start
+Get started
+help
+Find out more about me
+enable
+Enable me in this chat (admin only)
+disable
+Disable me in this chat (admin only)
+enable_captions
+Enable Instagram caption downloading in this chat
+disable_captions
+Disable Instagram caption downloading in this chat
+uncompressed
+Get uncompressed media from Instagram (uses links in your message and in the message you're replying to)
+audio
+Get audio from YouTube and YouTube Music (uses links in your message and in the message you're replying to)
+admin_commands
+Get a list of available admin commands (admin only)

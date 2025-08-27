@@ -13,7 +13,8 @@ def main():
     
     application = ApplicationBuilder().token(env("TOKEN")).build()
 
-    with open("commands.txt", "r") as file:
+    commands_path = os.path.join(DIRECTORY, "settings", "commands.txt")
+    with open(commands_path, "r") as file:
         lines = [line.strip() for line in file]
 
     commands = []
