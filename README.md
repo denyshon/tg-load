@@ -1,6 +1,6 @@
 Tired of opening every single link sent by your friends? We too.
 
-From now on, you don't need that. **tg-load** sets a Telegram bot for downloading and sending content from the links. Just add the bot to your group, enable it and get all the supported content directly to your chat!
+From now on, you don't need that. **tg-load** sets a Telegram bot for downloading and sending content from links. Just add the bot to your group, enable it and get all the supported content directly to your chat!
 
 Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **YouTube Shorts**).
 
@@ -42,3 +42,7 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
 - You can specify the texts of the messages sent by the bot in `config.toml`. Make sure to read the comments there.
 - You may also want to set a command list for your bot. You can specify it in `commands.txt` (each command must be in a separate line, followed by another line with the description), and then set the commands by running `set_commands.py`.
 - To run the bot, simply run `tg_load.py`.
+  - If you installed *tg-load* using a package manager, you can also execute
+  ```
+  tg-load
+  ```
