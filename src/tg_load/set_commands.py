@@ -1,4 +1,6 @@
 import asyncio
+import os
+import pathlib
 from environs import env
 
 from telegram import BotCommand
@@ -6,6 +8,8 @@ from telegram.ext import ApplicationBuilder
 
 
 def main():
+    DIRECTORY = pathlib.Path(__file__).resolve().parents[0]
+    
     env.read_env()
 
     loop = asyncio.new_event_loop()

@@ -11,8 +11,8 @@ Enable Instagram caption downloading in this chat
 disable_captions
 Disable Instagram caption downloading in this chat
 uncompressed
-Get uncompressed media from Instagram (uses links in your message and in the message you're replying to)
+Get uncompressed media from Instagram
 audio
-Get audio from YouTube and YouTube Music (uses links in your message and in the message you're replying to)
+Get audio from YouTube and YouTube Music
 admin_commands
-Get a list of available admin commands (admin only)
+Get a list of admin commands (admin only)
