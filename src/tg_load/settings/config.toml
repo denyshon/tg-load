@@ -38,7 +38,7 @@ success = "Captions are now enabled in this chat!"
 [admin_messages]
 # All the non-error admin messages
 # Must be strings; {bot_name} and {bot_username} are available; certain HTML tags are available (https://core.telegram.org/bots/api#html-style); 0-1024 characters after entities parsing
-admin_commands = "Available admin commands:\n<code>/enable_chats</code> [chat_id] [chat_id] … [chat_id] - Enable chats by ids\n<code>/disable_chats</code> [chat_id] [chat_id] … [chat_id] - Disable chats by ids\n<code>/ban_users</code> [user_id] [user_id] … [user_id] - Ban users by id (prevent from using the bot)\n<code>/unban_users</code> [user_id] [user_id] … [user_id] - Unban users by id (allow using the bot)"
+admin_commands = "Available admin commands:\n<code>/enable_chats</code> [chat_id] [chat_id] … [chat_id] - Enable the bot in the chats with the given IDs\n<code>/disable_chats</code> [chat_id] [chat_id] … [chat_id] - Disable the bot in the chats with the given IDs\n<code>/ban_users</code> [user_id] [user_id] … [user_id] -  Prevent the users with the given IDs from using the bot\n<code>/unban_users</code> [user_id] [user_id] … [user_id] - Allow the users with the given IDs using the bot"
 [admin_messages.enable_chats]
 no_need = "The bot is already enabled in the chat <code>{}</code>."
 success = "The bot has been enabled in the chat <code>{}</code>."
