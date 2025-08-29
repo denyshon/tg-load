@@ -1019,6 +1019,8 @@ async def download_yt_and_reply(id: str, type: str, message: Message, compress =
     compress : bool, optional
         If `type` is ``'short'``, whether to compress the downloaded video when sending. Passed to ``reply_media()``. Default is ``True``.
     """
+    config_context = config["timeouts"]
+    
     if type not in ["audio", "album", "short"]:
         return
     
@@ -1027,15 +1029,8 @@ async def download_yt_and_reply(id: str, type: str, message: Message, compress =
     target = str(message.chat.id) + "-" + str(message.id) + "-audio-" + id
     worth_trying = True
     try_count = 0
-    if type == "audio":
-        MAX_TRY_COUNT = 3
-        TIMEOUT = 180
-    elif type == "album":
-        MAX_TRY_COUNT = 3
-        TIMEOUT = 360
-    else:  # type == "short"
-        MAX_TRY_COUNT = 3
-        TIMEOUT = 180
+    MAX_TRY_COUNT = 3
+    TIMEOUT = config_context[type]
     exitcode = 1
     try:
         while worth_trying:

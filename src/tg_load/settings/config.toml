@@ -1,5 +1,5 @@
-admin_ids = [961273339]
-logging_chat_ids = [-1002618523312]
+admin_ids = []
+logging_chat_ids = []
 
 [session_import]
 # A browser to import session from ("firefox" | "librewolf" | "safari"); leave empty to skip importing from browser
@@ -11,6 +11,13 @@ sessionid = ""
 ds_user_id = ""
 mid = ""
 ig_did = ""
+
+[timeouts]
+# Timeouts for download processes (in seconds), depending on the download type
+# All the download types must be present here
+audio = 180
+album = 360
+short = 180
 
 [messages]
 # All the non-error public messages
