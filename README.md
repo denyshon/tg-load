@@ -84,7 +84,7 @@ It is not recommended to include these commands to the bot's command list, but t
 - `/unban_users [user_id] [user_id] … [user_id]` [*admin only*]<br>
   Allow the users with the given IDs to use the bot
 ### Mentions
-You can mention the bot to force handling of the message you are replying to. Please make sure to reply to the message containing link(s), not one with downloaded content. Links in your message with the mention will also be handled as usual.
+You can mention the bot to force handling of the message you are replying to. Please make sure to reply to the message containing link(s), not the one with downloaded content. Links in your message with the mention will also be handled as usual.
 ### Limitations
 - Make sure to limit Instagram requests according to Instagram's limitations for a single account.
 - Limit the number of videos/audios being downloaded simultaneously. Remember, that for each of them a new process is created, so too high a number may lead to the bot's temporare unavailability and even a crash. The timeouts (*remember to adjust them* if needed) help deal with that, but do not solve the problem.
