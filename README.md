@@ -74,7 +74,7 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
 - `/admin_commands` [*admin only*]<br/>
   Get a list of available admin commands
 ### Admin commands
-It is not recommended to include these commands to the bot's command list, but they are still recognized:
+It is not recommended to include these commands in the bot's command list, but they are still recognized:
 - `/enable_chats [chat_id] [chat_id] … [chat_id]` [*admin only*]<br>
   Enable the bot in the chats with the given IDs
 - `/disable_chats [chat_id] [chat_id] … [chat_id]` [*admin only*]<br>
@@ -87,4 +87,8 @@ It is not recommended to include these commands to the bot's command list, but t
 You can mention the bot to force handling of the message you are replying to. Please make sure to reply to the message containing link(s), not the one with downloaded content. Links in your message with the mention will also be handled as usual.
 ### Limitations
 - Make sure to limit Instagram requests according to Instagram's limitations for a single account.
-- Limit the number of videos/audios being downloaded simultaneously. Remember, that for each of them a new process is created, so too high a number may lead to the bot's temporare unavailability and even a crash. The timeouts (*remember to adjust them if needed*) help deal with that, but do not solve the problem.
+- Limit the number of videos/audios being downloaded simultaneously. Remember that for each of them a new process is created, so too high a number may lead to the bot's temporary unavailability and even a crash. The timeouts (*remember to adjust them if needed*) help deal with that, but do not solve the problem.
+
+
+## Supported link types:
+_to be finished_
