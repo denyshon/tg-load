@@ -35,7 +35,7 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
    TOKEN=''
    FFMPEG_LOCATION=''
    ```
-8. Specify your bot's token and the ffmpeg custom build location in the .env file. The path may be absolute or relative, and must lead to the `bin` folder. Also, make sure to escape `\`. For example, if you placed ffmpeg in your working directory, the location will be `ffmpeg/bin` (or `ffmpeg\\bin` for Windows).
+8. Specify your bot's token and the ffmpeg custom build location in the .env file. The path may be absolute or relative, and must lead to the `bin` folder. Also, make sure to escape `\`. For example, if you placed ffmpeg in your working directory, the location will be `ffmpeg/bin` (or `ffmpeg\\bin` for Windows). **Warning:** for the console application, it is recommended to use an absolute path only.
 
 
 ## Starting
