@@ -1284,45 +1284,58 @@ async def handle_message(message: Message,
             audio_domains.append(" youtube.com/")
             audio_domains.append("www.youtube.com/")
             audio_domains.append("//youtube.com/")
+            audio_domains.append("m.youtube.com/")
+            audio_domains.append("youtu.be/")
         if audio_domains:
             while any(domain in text for domain in audio_domains):
                 type_start = len(text)
                 for domain in audio_domains:
-                    if domain in text: type_start = min(type_start, text.find(domain) + len(domain))
-                text = text[type_start:]
-                link_type_end = find_first_of(text, ['?', '/'])
-                link_type = text[:link_type_end]
-                text = text[(link_type_end + 1):]
-                if link_type in ["watch"]:
-                    value_pref = "v=" 
-                    songid_start = text.find(value_pref) + len(value_pref)
-                    text = text[songid_start:]
+                    if domain in text:
+                        domain_type_start = text.find(domain) + len(domain)
+                        if domain_type_start < type_start:
+                            postdomain_start = domain_type_start
+                            curr_domain = domain
+                text = text[postdomain_start:]
+                if curr_domain == "youtu.be/":
+                    # it's a shortened video link
                     songid = text[:find_first_of(text, ['&', '/', '?', ' ', '\n'])]
                     download_initialized = True
                     await download_yt_and_reply(songid, "audio", message)
-                elif link_type in ["shorts"]:
-                    videoid = text[:find_first_of(text, ['&', '/', '?', ' ', '\n'])]
-                    download_initialized = True
-                    await download_yt_and_reply(videoid, "audio", message)
-                elif link_type in ["playlist", "browse"]:
-                    if link_type == "playlist":
-                        value_pref = "list=" 
-                        playlistid_start = text.find(value_pref) + len(value_pref)
-                        text = text[playlistid_start:]
-                    playlistid = text[:find_first_of(text, ['&', '/', '?', ' ', '\n'])]
-                    # see https://github.com/tombulled/python-youtube-music/blob/0817d2688db3615a884453c6482008dac9977bf3/ytm/apis/AbstractYouTubeMusic/methods/album.py
-                    union_album_type = ytm.types.Union(
-                        ytm.types.AlbumPlaylistId,
-                        ytm.types.AlbumPlaylistBrowseId,
-                        ytm.types.AlbumBrowseId,
-                        ytm.types.AlbumId,
-                        ytm.types.AlbumRadioId,
-                        ytm.types.AlbumShuffleId,
-                    )
-                    # non-album playlists are not supported as YouTubeMusicDL.download_playlist is broken
-                    if ytm.utils.isinstance(playlistid, union_album_type):
+                else:
+                    # it's a link with a type ("watch?v=" | "shorts" | "playlist?list=" | "browse")
+                    link_type_end = find_first_of(text, ['?', '/'])
+                    link_type = text[:link_type_end]
+                    text = text[(link_type_end + 1):]
+                    if link_type in ["watch"]:
+                        value_pref = "v=" 
+                        songid_start = text.find(value_pref) + len(value_pref)
+                        text = text[songid_start:]
+                        songid = text[:find_first_of(text, ['&', '/', '?', ' ', '\n'])]
                         download_initialized = True
-                        await download_yt_and_reply(playlistid, "album", message)
+                        await download_yt_and_reply(songid, "audio", message)
+                    elif link_type in ["shorts"]:
+                        videoid = text[:find_first_of(text, ['&', '/', '?', ' ', '\n'])]
+                        download_initialized = True
+                        await download_yt_and_reply(videoid, "audio", message)
+                    elif link_type in ["playlist", "browse"]:
+                        if link_type == "playlist":
+                            value_pref = "list=" 
+                            playlistid_start = text.find(value_pref) + len(value_pref)
+                            text = text[playlistid_start:]
+                        playlistid = text[:find_first_of(text, ['&', '/', '?', ' ', '\n'])]
+                        # see https://github.com/tombulled/python-youtube-music/blob/0817d2688db3615a884453c6482008dac9977bf3/ytm/apis/AbstractYouTubeMusic/methods/album.py
+                        union_album_type = ytm.types.Union(
+                            ytm.types.AlbumPlaylistId,
+                            ytm.types.AlbumPlaylistBrowseId,
+                            ytm.types.AlbumBrowseId,
+                            ytm.types.AlbumId,
+                            ytm.types.AlbumRadioId,
+                            ytm.types.AlbumShuffleId,
+                        )
+                        # non-album playlists are not supported as YouTubeMusicDL.download_playlist is broken
+                        if ytm.utils.isinstance(playlistid, union_album_type):
+                            download_initialized = True
+                            await download_yt_and_reply(playlistid, "album", message)
     
     return download_initialized
 
