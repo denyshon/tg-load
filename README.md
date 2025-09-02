@@ -99,5 +99,6 @@ _to be finished_
 - Track a request count for each user
 - Add more download options for the users
 - Provide YouTube video downloading (limited per user)
+- Add Instagram highlights / profile downloading (with warnings and limited per user)
 - Provide support for LinkedIn links
 - Provide support for TikTok links
