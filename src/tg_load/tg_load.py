@@ -1169,7 +1169,7 @@ async def handle_message(message: Message,
     """Get supported links from `message`, initialize donwloads and reply.
 
     Set the corresponding chat action. Reply with an error message in case of any errors.
-    Currently supported: Instagram ('p', 'reel', 'reels', 'stories'), YouTube Music ('watch', 'playlist', 'browse'), YouTube (same as YT Music + 'shorts').
+    Currently supported: Instagram ('p', 'reel', 'reels', 'stories'), YouTube Music ('watch', 'playlist', 'browse'), YouTube ('youtu.be', 'watch', 'playlist', 'shorts').
 
     Parameters
     ----------
