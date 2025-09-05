@@ -644,7 +644,13 @@ async def download_post_and_reply(shortcode: str, message: Message, compress: bo
     compress : bool, optional
         Whether to compress the downloaded images and videos when sending. Passed to ``reply_media()``. Default is ``True``.
     """
-    await message.reply_chat_action('typing')
+    try:
+        await message.reply_chat_action('typing')
+    except Exception:
+        print(
+            f"Failed to set chat action:\n{traceback.format_exc()}",
+            file = sys.stderr
+        )
     
     L = L_captions if message.chat.id not in no_captions_chat_ids else L_no_captions
     try:
@@ -720,7 +726,13 @@ async def download_post_and_reply(shortcode: str, message: Message, compress: bo
                 message.get_bot()
             )
         else:
-            await message.reply_chat_action('upload_document')
+            try:
+                await message.reply_chat_action('upload_document')
+            except Exception:
+                print(
+                    f"Failed to set chat action:\n{traceback.format_exc()}",
+                    file = sys.stderr
+                )
             
             reply_media_task = asyncio.create_task(
                 reply_media(target, message, compress)
@@ -760,7 +772,13 @@ async def download_storyitem_and_reply(story_item: StoryItem, message: Message, 
     compress : bool, optional
         Whether to compress the downloaded image or video when sending. Passed to ``reply_media()``. Default is ``True``.
     """
-    await message.reply_chat_action('typing')
+    try:
+        await message.reply_chat_action('typing')
+    except Exception:
+        print(
+            f"Failed to set chat action:\n{traceback.format_exc()}",
+            file = sys.stderr
+        )
     
     L = L_captions if message.chat.id not in no_captions_chat_ids else L_no_captions
     target = str(message.chat.id) + "-" + str(message.id) + "-story-" + str(story_item.mediaid)
@@ -800,7 +818,13 @@ async def download_storyitem_and_reply(story_item: StoryItem, message: Message, 
             message.get_bot()
         )
     else:
-        await message.reply_chat_action('upload_document')
+        try:
+            await message.reply_chat_action('upload_document')
+        except Exception:
+            print(
+                f"Failed to set chat action:\n{traceback.format_exc()}",
+                file = sys.stderr
+            )
             
         reply_media_task = asyncio.create_task(
             reply_media(target, message, compress)
@@ -840,7 +864,13 @@ async def download_stories_and_reply(profile: Profile, message: Message, compres
     compress : bool, optional
         Whether to compress the downloaded images and videos when sending. Passed to ``reply_media()``. Default is ``True``.
     """
-    await message.reply_chat_action('typing')
+    try:
+        await message.reply_chat_action('typing')
+    except Exception:
+        print(
+            f"Failed to set chat action:\n{traceback.format_exc()}",
+            file = sys.stderr
+        )
     
     L = L_captions if message.chat.id not in no_captions_chat_ids else L_no_captions
     target = str(message.chat.id) + "-" + str(message.id) + "-stories-" + str(profile.userid)
@@ -884,7 +914,13 @@ async def download_stories_and_reply(profile: Profile, message: Message, compres
             message.get_bot()
         )
     else:
-        await message.reply_chat_action('upload_document')
+        try:
+            await message.reply_chat_action('upload_document')
+        except Exception:
+            print(
+                f"Failed to set chat action:\n{traceback.format_exc()}",
+                file = sys.stderr
+            )
             
         reply_media_task = asyncio.create_task(
             reply_media(target, message, compress)
@@ -1024,7 +1060,13 @@ async def download_yt_and_reply(id: str, type: str, message: Message, compress =
     if type not in ["audio", "album", "short"]:
         return
     
-    await message.reply_chat_action('typing')
+    try:
+        await message.reply_chat_action('typing')
+    except Exception:
+        print(
+            f"Failed to set chat action:\n{traceback.format_exc()}",
+            file = sys.stderr
+        )
 
     target = str(message.chat.id) + "-" + str(message.id) + "-audio-" + id
     worth_trying = True
@@ -1034,7 +1076,13 @@ async def download_yt_and_reply(id: str, type: str, message: Message, compress =
     exitcode = 1
     try:
         while worth_trying:
-            await message.reply_chat_action('typing')
+            try:
+                await message.reply_chat_action('typing')
+            except Exception:
+                print(
+                    f"Failed to set chat action:\n{traceback.format_exc()}",
+                    file = sys.stderr
+                )
             try_count += 1
             worth_trying = False
             try:
@@ -1108,7 +1156,13 @@ async def download_yt_and_reply(id: str, type: str, message: Message, compress =
         )
     else:
         if exitcode == 0:
-            await message.reply_chat_action('upload_document')
+            try:
+                await message.reply_chat_action('upload_document')
+            except Exception:
+                print(
+                    f"Failed to set chat action:\n{traceback.format_exc()}",
+                    file = sys.stderr
+                )
                     
             if type != "short":
                 reply_yt_task = asyncio.create_task(
@@ -1168,7 +1222,7 @@ async def handle_message(message: Message,
                          ) -> bool:
     """Get supported links from `message`, initialize donwloads and reply.
 
-    Set the corresponding chat action. Reply with an error message in case of any errors.
+    Reply with an error message in case of any errors.
     Currently supported: Instagram ('p', 'reel', 'reels', 'stories'), YouTube Music ('watch', 'playlist', 'browse'), YouTube ('youtu.be', 'watch', 'playlist', 'shorts').
 
     Parameters
@@ -1191,8 +1245,6 @@ async def handle_message(message: Message,
     bool
         Whether a download has been initialized.
     """
-    await message.reply_chat_action('typing')
-    
     download_initialized = False
     text_orig = message.text if message.text else message.caption
     if text_orig:
@@ -1224,6 +1276,14 @@ async def handle_message(message: Message,
                 text = text[(first_slash + 1):]
                 mediaid = text[:find_first_of(text, ['/', '?', ' ', '\n'])]
                 try:
+                    try:
+                        await message.reply_chat_action('typing')
+                    except Exception:
+                        print(
+                            f"Failed to set chat action:\n{traceback.format_exc()}",
+                            file = sys.stderr
+                        )
+                    
                     profile = Profile.from_username(L.context, username)
                 except Exception as e:
                     print(
@@ -1345,7 +1405,7 @@ async def check_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     A handler for text messages. Call ``handle_message()``.
 
     Ensure the bot is enabled in the chat and the message author is not banned.
-    Call ``handle_message()`` and print the "no links" message if it returns ``False`` (no downloads have been initialized).
+    Call ``handle_message()`` and, for private chats, print the "no links" message if it returns ``False`` (no downloads have been initialized).
     For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
     """
     config_context = config["messages"]
@@ -1354,7 +1414,7 @@ async def check_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.effective_message
     if await ensure_active_chat(message, context, public_reply = False) and await ensure_not_banned_author(message, context):
         download_initialized = await handle_message(message)
-        if not download_initialized:
+        if message.chat.type == 'private' and not download_initialized:
             await message.reply_html(
                 await format_message(config_context["no_links"], context)
             )
@@ -1673,11 +1733,13 @@ def main():
         CommandHandler('enable_captions', enable_captions),
         CommandHandler('uncompressed', uncompressed),
         CommandHandler('audio', audio),
-        MessageHandler(filters.Mention(application.bot.name), mentioned),
+        MessageHandler(filters.Mention(application.bot.name) | filters.ChatType.PRIVATE,
+                       mentioned
+        ),
         MessageHandler((filters.TEXT & (filters.Entity('url') | filters.Entity('text_link'))) |
                        (filters.CAPTION & (filters.CaptionEntity('url') | filters.CaptionEntity('text_link'))),
                        check_message
-                       ),
+        ),
         CommandHandler('admin_commands', admin_commands),
         CommandHandler('enable_chats', enable_chats),
         CommandHandler('disable_chats', disable_chats),
