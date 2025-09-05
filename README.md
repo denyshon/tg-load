@@ -99,12 +99,14 @@ You can mention the bot to force handling of the message you are replying to. Pl
   - `stories`: links to Instagram profile stories, e.g., `https://www.instagram.com/stories/instagram/`, or links to certain Instagram stories, e.g., `https://www.instagram.com/stories/instagram/3711483840431921893/`
 - **YouTube Music**:
   - `watch`: links to YouTube Music songs, e.g., `https://music.youtube.com/watch?v=lYBUbBu4W08`
-  - `playlist`: links to YouTube Music albums, singles and playlists, e.g., `https://music.youtube.com/playlist?list=OLAK5uy_kRPA8ySVXwGMFk2DcJjEzCTE4yjJqiOrY`
+  - `playlist`: links to YouTube Music albums and singles, e.g., `https://music.youtube.com/playlist?list=OLAK5uy_kRPA8ySVXwGMFk2DcJjEzCTE4yjJqiOrY`<br>
+    **Note**: user playlists are not supported, see [#4](https://github.com/denyshon/tg-load/issues/4)
   - `browse`: *browse* links to YouTube Music albums and singles (redirected to *playlist* links), e.g., `https://music.youtube.com/browse/MPREb_WrO8DjG6YIZ`
 - **YouTube**:
   - `watch`: links to YouTube videos, e.g., `https://www.youtube.com/watch?v=lYBUbBu4W08`
   - `youtu.be`: shortened links to YouTube videos (redirected to *watch* links), e.g., `https://youtu.be/xvFZjo5PgG0`
-  - `playlist`: links to YouTube albums, singles and playlists, e.g., `https://www.youtube.com/playlist?list=OLAK5uy_kRPA8ySVXwGMFk2DcJjEzCTE4yjJqiOrY`
+  - `playlist`: links to YouTube albums and singles, e.g., `https://www.youtube.com/playlist?list=OLAK5uy_kRPA8ySVXwGMFk2DcJjEzCTE4yjJqiOrY`
+    **Note**: user playlists are not supported, see [#4](https://github.com/denyshon/tg-load/issues/4)
   - `shorts`: links to YouTube shorts, e.g., `https://www.youtube.com/shorts/ei_2rfHyqCU`
 
 
