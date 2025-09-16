@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "20ca4a5536f9e33a8f2a6d71aa4f432f415dd1c102ccdd886b9400f17cf5638e"
+            "sha256": "53a9b26813f01997d5b2f37b2f339979f37d70fbe1af360e008ee21c7690588c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -332,11 +332,11 @@
         },
         "marshmallow": {
             "hashes": [
-                "sha256:3b6e80aac299a7935cfb97ed01d1854fb90b5079430969af92118ea1b12a8d55",
-                "sha256:e7b0528337e9990fd64950f8a6b3a1baabed09ad17a0dfb844d701151f92d203"
+                "sha256:72f14ef346f81269dbddee891bac547dda1501e9e08b6a809756ea3dbb7936a1",
+                "sha256:e1d860bd262737cb2d34e1541b84cb52c32c72c9474e3fe6f30f137ef8b0d97f"
             ],
             "markers": "python_version >= '3.9'",
-            "version": "==4.0.0"
+            "version": "==4.0.1"
         },
         "pycryptodomex": {
             "hashes": [
@@ -395,12 +395,12 @@
         },
         "python-telegram-bot": {
             "hashes": [
-                "sha256:513d5ab9db96dcf25272dad0a726555e80edf60d09246a7d0d425b77115f5440",
-                "sha256:88fab2d1652dbfd5379552e8b904d86173c524fdb9270d3a8685f599ffe0299f"
+                "sha256:5f73d6501fbe9118424dd04213311efec1b442e81a4900f8816102601c83685c",
+                "sha256:ca332925a5ef3815dfba9dac12382232b840c2f57e2c1e660b1a31b5cb7341fe"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.9'",
-            "version": "==22.3"
+            "version": "==22.4"
         },
         "pywin32": {
             "hashes": [
@@ -477,12 +477,12 @@
         },
         "yt-dlp": {
             "hashes": [
-                "sha256:b8c71fe4516170dea60c6e5c54e2d45654693b8dc273cad060f22199476ec979",
-                "sha256:d1846bbb7edbcd2a0d4a2d76c7a2124868de9ea3b3959a8cb8219e3f7cb5c335"
+                "sha256:68a03b5c50e3d0f6af7244bd4bf491c1b12e4e2112b051cde05cdfd2647eb9a8",
+                "sha256:9ce080f80b2258e872fe8a75f4707ea2c644e697477186e20b9a04d9a9ea37cf"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.9'",
-            "version": "==2025.8.22"
+            "version": "==2025.9.5"
         }
     },
     "develop": {
