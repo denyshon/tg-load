@@ -16,7 +16,7 @@ dependencies = [
     "environs>=14.2.0",
     "instaloader @ git+https://github.com/denyshon/instaloader.git@tg-load",
     "browser-cookie3 @ git+https://github.com/denyshon/browser_cookie3.git@tg-load",
-    "yt-dlp>=2025.8.22"
+    "yt-dlp>=2025.9.5"
 ]
 requires-python = ">=3.13"
 

@@ -10,7 +10,7 @@ python-telegram-bot = "==22.4"
 environs = ">=14.2.0"
 instaloader = {git = "https://github.com/denyshon/instaloader.git", ref = "tg-load"}
 browser-cookie3 = {git = "https://github.com/denyshon/browser_cookie3.git", ref = "tg-load"}
-yt-dlp = ">=2025.8.22"
+yt-dlp = ">=2025.9.5"
 
 [dev-packages]
 pytest = "*"
