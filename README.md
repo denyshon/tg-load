@@ -24,7 +24,7 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
 ## Recommended installation
 1. Install the latest version of Python from the [official website](https://www.python.org/downloads/) with PIP included.
 2. [Install Git](https://github.com/git-guides/install-git).
-3. In the system command prompt (in your desired directory), run the following as an administrator:<br/>
+3. In the system command prompt, run the following as an administrator:<br/>
    ```
    pip install git+https://github.com/denyshon/tg-load
    ```
