@@ -1688,8 +1688,7 @@ def main():
         download_video_thumbnails = False,
         save_metadata = False,
         filename_pattern = "file",
-        # Merge https://github.com/instaloader/instaloader/pull/2578
-        download_captions = False
+        post_metadata_txt_pattern = ""  # don't save captions
     )
     # L.login("username", "password") does not work since login file request does not receive sessionid
     # A workaround for missing sessionid (see https://github.com/instaloader/instaloader/issues/2487):
