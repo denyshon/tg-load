@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "eac7b7732bde9f5abfd448c157916b9ed107b06c6fc4c1d6281e4ccfc505078c"
+            "sha256": "762f9724ec9f05f6cff7050553054afda9c60416b0044ab05c9579e3241e234c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -18,11 +18,11 @@
     "default": {
         "anyio": {
             "hashes": [
-                "sha256:3f3fae35c96039744587aa5b8371e7e8e603c0702999535961dd336026973ba6",
-                "sha256:60e474ac86736bbfd6f210f7a61218939c318f43f9972497381f1c5e930ed3d1"
+                "sha256:0287e96f4d26d4149305414d4e3bc32f0dcd0862365a4bddea19d7a1ec38c4fc",
+                "sha256:82a8d0b81e318cc5ce71a5f1f8b5c4e63619620b63141ef8c995fa0db95a57c4"
             ],
             "markers": "python_version >= '3.9'",
-            "version": "==4.10.0"
+            "version": "==4.11.0"
         },
         "blinker": {
             "hashes": [
@@ -395,12 +395,12 @@
         },
         "python-telegram-bot": {
             "hashes": [
-                "sha256:5f73d6501fbe9118424dd04213311efec1b442e81a4900f8816102601c83685c",
-                "sha256:ca332925a5ef3815dfba9dac12382232b840c2f57e2c1e660b1a31b5cb7341fe"
+                "sha256:4b7cd365344a7dce54312cc4520d7fa898b44d1a0e5f8c74b5bd9b540d035d16",
+                "sha256:82d4efd891d04132f308f0369f5b5929e0b96957901f58bcef43911c5f6f92f8"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.9'",
-            "version": "==22.4"
+            "version": "==22.5"
         },
         "pywin32": {
             "hashes": [
