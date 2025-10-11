@@ -39,16 +39,29 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
 
 ## Starting
 - You can specify the texts of the messages sent by the bot in `src/tg_load/settings/config.toml`. Make sure to read the comments there.
+- You can pass YouTube cookies to login via `src/tg_load/settings/youtube_cookies.txt`. See https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies
 - You may also want to set a command list for your bot. You can specify it in `src/tg_load/settings/commands.txt`, and then set the commands by running `src/tg_load/set_commands.py`.
   - Each of the commands must be in a separate line, followed by another line with the description.
   - If you installed *tg-load* using a package manager, you can also execute
     ```
     tg-load-set-commands
     ```
-- To run the bot, simply run `src/tg_load/tg_load.py`.
-  - If you installed *tg-load* using a package manager, you can also execute
+- To run the bot:
+  - If you installed *tg-load* via pip, simply execute
     ```
     tg-load
+    ```
+  - If you haven't installed *tg-load*, in the project directory execute:
+    ```
+    set PYTHONPATH=src
+    ```
+    on Windows, or
+    ```
+    PYTHONPATH=src
+    ```
+    on Unix, and then
+    ```
+    python -m tg_load
     ```
 
 
@@ -84,7 +97,6 @@ It is not recommended to include these commands in the bot's command list, but t
   Allow the users with the given IDs to use the bot
 ### Mentions
 You can mention the bot to force handling of the message you are replying to. Please make sure to reply to the message containing link(s), not the one with downloaded content. Links in your message with the mention will also be handled as usual.
-
 ### Limitations
 - Make sure to limit Instagram requests according to Instagram's limitations for a single account.
 - Limit the number of videos/audios being downloaded simultaneously. Remember that for each of them a new process is created, so too high a number may lead to the bot's temporary unavailability and even a crash. The timeouts (*remember to adjust them if needed*) help deal with that, but do not solve the problem.
@@ -109,6 +121,33 @@ You can mention the bot to force handling of the message you are replying to. Pl
   - `shorts`: links to YouTube shorts, e.g., `https://www.youtube.com/shorts/ei_2rfHyqCU`
 
 
+## Google Cloud Run deployment
+Install gcloud. On Windows:
+```
+winget install --id Google.CloudSDK
+```
+Create a project, and then login:
+```
+gcloud auth login
+gcloud auth application-default login
+gcloud config set project ${PROJECT_ID}
+
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com storage.googleapis.com
+```
+Create a bucket (or use your project's one) and give PROJECT_ID-compute@developer.gserviceaccount.com the Storage Object User role.
+In the project directory, deploy from source:
+```
+gcloud run deploy tg-load --source . --region ${REGION} --allow-unauthenticated --clear-base-image --set-env-vars TOKEN=${TOKEN} --set-env-vars STATE_BUCKET=${BUCKET} --min-instances 1
+```
+Set webhook updates:
+```
+curl -s -X POST "https://api.telegram.org/bot${TOKEN}/setWebhook" \
+  -d "url=${SERVICE_URL}/webhook" \
+  -d "secret_token=${SECRET}" \
+  -d "drop_pending_updates=true"
+```
+
+
 ## Plans for future releases
 - Track a request count for each user
 - Add more download options for the users
@@ -116,3 +155,5 @@ You can mention the bot to force handling of the message you are replying to. Pl
 - Add Instagram highlights / profile downloading (with warnings and limited per user)
 - Provide support for LinkedIn links
 - Provide support for TikTok links
+- Provide support for SoundCloud links
+- Provide support for X links

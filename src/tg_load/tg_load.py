@@ -1,26 +1,24 @@
-import sys
-import logging
-import tomllib
-import ast
 import asyncio
+import io
+import logging
 import multiprocessing
 import os
 import pathlib
 import shutil
+import sys
 import traceback
-import io
-from environs import env
 from contextlib import contextmanager
 from typing import Optional, Callable
 from types import MethodType
 from concurrent.futures import ProcessPoolExecutor, TimeoutError
 from functools import partial
 
+from .globals import DIR, ROOT_DIR, BUCKET, env, config, L_captions, L_no_captions, active_chat_ids, no_captions_chat_ids, banned_user_ids
+
 from telegram import Update, Message, InputMediaPhoto, InputMediaVideo, InputMediaAudio, InputMediaDocument, Bot
-from telegram.ext import Defaults, ApplicationBuilder, CallbackContext, ContextTypes, CommandHandler, MessageHandler, filters
+from telegram.ext import Defaults, Application, ApplicationBuilder, CallbackContext, ContextTypes, CommandHandler, MessageHandler, filters
 
 import instaloader
-from instaloader.__main__ import import_session
 from instaloader import Profile, StoryItem
 from instaloader.exceptions import InstaloaderException
 
@@ -80,116 +78,6 @@ def error_catcher(self, extra_info: Optional[str] = None):
         )
         if self.raise_all_errors:
             raise
-
-
-async def async_add(target_set: set, item):
-    """An async wrapper for ``set.add()``."""
-    target_set.add(item)
-
-
-async def async_discard(target_set: set, item):
-    """An async wrapper for ``set.discard()``."""
-    target_set.discard(item)
-
-
-async def async_write(filename: str, content: str):
-    """An async wrapper for the safe ``file.write()``."""
-    with open(filename, 'w') as file:
-        file.write(content)
-
-
-async def worker(task_queue: asyncio.Queue()):
-    """Endlessly run tasks from `task_queue`."""
-    while True:
-        task_coro, done_future = await task_queue.get()
-        try:
-            await task_coro
-        except Exception as e:
-            done_future.set_exception(e)
-        else:
-            done_future.set_result(True)
-        finally:
-            task_queue.task_done()
-
-
-class Preference:
-    """
-    A set representing a preference that can be asynchronically changed.
-
-    Attributes
-    ----------
-    set: set
-        A set representing a preference.
-    filename: str
-        The name of the file to store the preference's value. When initializing, the contructor will try to import `self.set' from this file. Also used by `backup()`.
-        Must be a filename, not a filepath.
-    loop: asyncio.AbstractEventLoop
-        An asyncio loop to run the workers.
-
-    Methods
-    -------
-    backup():
-        Write the preference's value to the file specified by `self.filename`.
-    add(item):
-        Add `item` to `self.set`.
-    discard(item):
-        Discard  `item` from `self.set`
-    """
-    
-    def __init__(self, filename: str, loop: asyncio.AbstractEventLoop):
-        """Create `self.set`, set `self.filename` and `self.loop` from the corresponding arguments, create a task queue and start a worker for it."""
-        self.set = set()
-        self.__queue = asyncio.Queue()
-        self.filename = filename
-        self.__import_from_backup()
-        self.loop = loop
-        self.__worker_task = loop.create_task(worker(self.__queue))
-
-    def __iter__(self):
-        """Inherit from `self.set` iterator."""
-        return iter(self.set)
-
-    async def __del__(self):
-        """Cancel the running worker and wait for it to stop."""
-        self.__worker_task.cancel()
-        await self.__worker_task
-
-    def __import_from_backup(self):
-        """Try to import `self.set` from `self.filename`. May not be async safe, so it's private (and is called only once, in `__init__()`)."""
-        if os.path.isfile(self.filename):
-            with open(self.filename, 'r') as file:
-                try:
-                    file_str = file.read()
-                    self.set = ast.literal_eval(file_str)
-                except Exception as e:
-                    print(e, file = sys.stderr)
-
-    async def backup(self) -> asyncio.Future:
-        """Add a task to the queue to write `self.set` to `self.filename`."""
-        future = self.loop.create_future()
-        await self.__queue.put((
-            async_write(self.filename, str(self.set)),
-            future
-        ))
-        return future
-
-    async def add(self, item) -> asyncio.Future:
-        """Add a task to the queue to add `item` to `self.set`."""
-        future = self.loop.create_future()
-        await self.__queue.put((
-            async_add(self.set, item),
-            future
-        ))
-        return future
-
-    async def discard(self, item) -> asyncio.Future:
-        """Add a task to the queue to discard `item` from `self.set`."""
-        future = self.loop.create_future()
-        await self.__queue.put((
-            async_discard(self.set, item),
-            future
-        ))
-        return future
 
 
 def sanitize_html_style(msg: str) -> str:
@@ -944,7 +832,7 @@ async def download_stories_and_reply(profile: Profile, message: Message, compres
         shutil.rmtree(target, ignore_errors = True)
 
 
-def create_ytlm_and_download_song(song_id, directory):
+def create_ytml_and_download_song(song_id, directory):
     """
     Call ``YouTubeMusicDL.download_song`` with certain parameters.
 
@@ -962,19 +850,39 @@ def create_ytlm_and_download_song(song_id, directory):
         Used as an argument of https://docs.python.org/3/library/pathlib.html#pathlib.Path
     """
     ytml = YouTubeMusicDL(youtube_downloader = yt_dlp.YoutubeDL)
+    
     # Merge https://github.com/tombulled/python-youtube-music/pull/30
     # Merge https://github.com/tombulled/python-youtube-music/pull/32
-    ytml.download_song(
-        song_id,
-        directory = directory,
-        ffmpeg_location = env("FFMPEG_LOCATION"),
-        no_warnings = True,
-        noprogress = True,
-        # we can't pass a custom logger that calls send_to_logging_chats(), as application.bot is not picklable
-    )
+    if env("STATE_BUCKET", default = None):
+        blob = BUCKET.blob(os.path.join("settings", "youtube_cookies.txt"))
+        cookiefile_exists = blob.exists()
+        cookiefile = blob.open(mode = "rt", encoding = "utf-8")
+    else:
+        cookie_path = os.path.join(DIR, "settings", "youtube_cookies.txt")
+        cookiefile_exists = os.path.isfile(cookie_path)
+        cookiefile = cookie_path
+    if cookiefile_exists:
+        ytml.download_song(
+            song_id,
+            directory = directory,
+            ffmpeg_location = env("FFMPEG_LOCATION"),
+            cookiefile = cookiefile,
+            no_warnings = True,
+            noprogress = True,
+            # we can't pass a custom logger that calls send_to_logging_chats(), as application.bot is not picklable
+        )
+    else:
+        ytml.download_song(
+            song_id,
+            directory = directory,
+            ffmpeg_location = env("FFMPEG_LOCATION"),
+            no_warnings = True,
+            noprogress = True,
+            # we can't pass a custom logger that calls send_to_logging_chats(), as application.bot is not picklable
+        )
 
 
-def create_ytlm_and_download_album(album_id, directory):
+def create_ytml_and_download_album(album_id, directory):
     """
     Call ``YouTubeMusicDL.download_album`` with certain parameters.
 
@@ -993,20 +901,41 @@ def create_ytlm_and_download_album(album_id, directory):
         Used as an argument of https://docs.python.org/3/library/pathlib.html#pathlib.Path
     """
     ytml = YouTubeMusicDL(youtube_downloader = yt_dlp.YoutubeDL)
+    
     # Merge https://github.com/tombulled/python-youtube-music/pull/30
     # Merge https://github.com/tombulled/python-youtube-music/pull/32
-    ytml.download_album(
-        album_id,
-        directory = directory,
-        ffmpeg_location = env("FFMPEG_LOCATION"),
-        no_warnings = True,
-        noprogress = True,
-        download_archive = os.path.join(directory, "download_archive.txt")
-        # we can't pass a custom logger that calls send_to_logging_chats(), as application.bot is not picklable
-    )
+    if env("STATE_BUCKET", default = None):
+        blob = BUCKET.blob(os.path.join("settings", "youtube_cookies.txt"))
+        cookiefile_exists = blob.exists()
+        cookiefile = blob.open(mode = "rt", encoding = "utf-8")
+    else:
+        cookie_path = os.path.join(DIR, "settings", "youtube_cookies.txt")
+        cookiefile_exists = os.path.isfile(cookie_path)
+        cookiefile = cookie_path
+    if cookiefile_exists:
+        ytml.download_album(
+            album_id,
+            directory = directory,
+            ffmpeg_location = env("FFMPEG_LOCATION"),
+            cookiefile = cookiefile,
+            no_warnings = True,
+            noprogress = True,
+            download_archive = os.path.join(directory, "download_archive.txt"),
+            # we can't pass a custom logger that calls send_to_logging_chats(), as application.bot is not picklable
+        )
+    else:
+        ytml.download_album(
+            album_id,
+            directory = directory,
+            ffmpeg_location = env("FFMPEG_LOCATION"),
+            no_warnings = True,
+            noprogress = True,
+            download_archive = os.path.join(directory, "download_archive.txt"),
+            # we can't pass a custom logger that calls send_to_logging_chats(), as application.bot is not picklable
+        )
 
 
-def create_ytlm_and_download_video(video_id, directory):
+def create_ytml_and_download_video(video_id, directory):
     """
     Call ``YouTubeMusicDL.download_video`` with certain parameters.
 
@@ -1024,17 +953,38 @@ def create_ytlm_and_download_video(video_id, directory):
         Used as an argument of https://docs.python.org/3/library/pathlib.html#pathlib.Path
     """
     ytml = YouTubeMusicDL(youtube_downloader = yt_dlp.YoutubeDL)
+    
     # Merge https://github.com/tombulled/python-youtube-music/pull/30
     # Merge https://github.com/tombulled/python-youtube-music/pull/32
-    ytml.download_video(
-        video_id,
-        directory = directory,
-        ffmpeg_location = env("FFMPEG_LOCATION"),
-        no_warnings = True,
-        noprogress = True,
-        download_archive = os.path.join(directory, "download_archive.txt")
-        # we can't pass a custom logger that calls send_to_logging_chats(), as application.bot is not picklable
-    )
+    if env("STATE_BUCKET", default = None):
+        blob = BUCKET.blob(os.path.join("settings", "youtube_cookies.txt"))
+        cookiefile_exists = blob.exists()
+        cookiefile = blob.open(mode = "rt", encoding = "utf-8")
+    else:
+        cookie_path = os.path.join(DIR, "settings", "youtube_cookies.txt")
+        cookiefile_exists = os.path.isfile(cookie_path)
+        cookiefile = cookie_path
+    if cookiefile_exists:
+        ytml.download_video(
+            video_id,
+            directory = directory,
+            ffmpeg_location = env("FFMPEG_LOCATION"),
+            cookiefile = cookiefile,
+            no_warnings = True,
+            noprogress = True,
+            download_archive = os.path.join(directory, "download_archive.txt"),
+            # we can't pass a custom logger that calls send_to_logging_chats(), as application.bot is not picklable
+        )
+    else:
+        ytml.download_video(
+            video_id,
+            directory = directory,
+            ffmpeg_location = env("FFMPEG_LOCATION"),
+            no_warnings = True,
+            noprogress = True,
+            download_archive = os.path.join(directory, "download_archive.txt"),
+            # we can't pass a custom logger that calls send_to_logging_chats(), as application.bot is not picklable
+        )
 
 
 async def download_yt_and_reply(id: str, type: str, message: Message, compress = True):
@@ -1088,17 +1038,17 @@ async def download_yt_and_reply(id: str, type: str, message: Message, compress =
             try:
                 if type == "audio":
                     download_process = multiprocessing.Process(
-                        target = create_ytlm_and_download_song,
+                        target = create_ytml_and_download_song,
                         args = (id, target)
                     )
                 elif type == "album":
                     download_process = multiprocessing.Process(
-                        target = create_ytlm_and_download_album,
+                        target = create_ytml_and_download_album,
                         args = (id, target)
                     )
                 else:  # type == "short"
                     download_process = multiprocessing.Process(
-                        target = create_ytlm_and_download_video,
+                        target = create_ytml_and_download_video,
                         args = (id, target)
                     )
                 download_process.start()
@@ -1654,74 +1604,20 @@ async def unban_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     )
 
 
-def main():
-    global config
-    global L_captions
-    global L_no_captions
-    global active_chat_ids
-    global no_captions_chat_ids
-    global banned_user_ids
-    
+async def setup() -> Application:
+    global application  #required by error_catcher()
+
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=logging.WARNING
     )
 
-    DIRECTORY = pathlib.Path(__file__).resolve().parents[0]
-    ROOT_DIRECTORY = DIRECTORY.parents[1] if "src" in str(DIRECTORY) else DIRECTORY
-    
-    # prepare envs and configs
-    env.read_env()
-    config_path = os.path.join(DIRECTORY, "settings", "config.toml")
-    with open(config_path, 'rb') as config_file:
-        config = tomllib.load(config_file)
-
-    L_captions = instaloader.Instaloader(
-        quiet = True,
-        download_video_thumbnails = False,
-        save_metadata = False,
-        filename_pattern = "file"
-    )
-
-    L_no_captions = instaloader.Instaloader(
-        quiet = True,
-        download_video_thumbnails = False,
-        save_metadata = False,
-        filename_pattern = "file",
-        post_metadata_txt_pattern = ""  # don't save captions
-    )
-    # L.login("username", "password") does not work since login file request does not receive sessionid
-    # A workaround for missing sessionid (see https://github.com/instaloader/instaloader/issues/2487):
-    # Merge https://github.com/instaloader/instaloader/pull/2577 (session import fixes)
-    # Optionally, merge https://github.com/borisbabic/browser_cookie3/pull/226 (Firefox MSiX support)
-    # Optionally, merge https://github.com/borisbabic/browser_cookie3/pull/225 (Firefox via Flatpak support)
-    if (config["session_import"]["browser"]):
-        for L in [L_captions, L_no_captions]:
-            import_session(config["session_import"]["browser"], L)
-    else:
-        for L in [L_captions, L_no_captions]:
-            L.load_session(config["session_import"]["username"], {
-                "csrftoken": config["session_import"]["csrftoken"],
-                "sessionid": config["session_import"]["sessionid"],
-                "ds_user_id": config["session_import"]["ds_user_id"],
-                "mid": config["session_import"]["mid"],
-                "ig_did": config["session_import"]["ig_did"]
-            })
-            L.test_login()
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
     defaults = Defaults(do_quote = True)
     application = ApplicationBuilder().token(env("TOKEN")).defaults(defaults).read_timeout(30).build()
     # we need to initialize application to fetch the bot's properties
-    loop.run_until_complete(application.initialize())
+    await application.initialize()
     for L in [L_captions, L_no_captions]:
         L.context.error_catcher = MethodType(error_catcher, L.context)
-
-    active_chat_ids = Preference(os.path.join(ROOT_DIRECTORY, "active_chat_ids.txt"), loop)
-    no_captions_chat_ids = Preference(os.path.join(ROOT_DIRECTORY, "no_captions_chat_ids.txt"), loop)
-    banned_user_ids = Preference(os.path.join(ROOT_DIRECTORY, "banned_user_ids.txt"), loop)
     
     application.add_handlers([
         CommandHandler('start', start),
@@ -1732,28 +1628,35 @@ def main():
         CommandHandler('enable_captions', enable_captions),
         CommandHandler('uncompressed', uncompressed),
         CommandHandler('audio', audio),
-        MessageHandler(filters.Mention(application.bot.name) | filters.ChatType.PRIVATE,
-                       mentioned
-        ),
-        MessageHandler((filters.TEXT & (filters.Entity('url') | filters.Entity('text_link'))) |
-                       (filters.CAPTION & (filters.CaptionEntity('url') | filters.CaptionEntity('text_link'))),
-                       check_message
-        ),
         CommandHandler('admin_commands', admin_commands),
         CommandHandler('enable_chats', enable_chats),
         CommandHandler('disable_chats', disable_chats),
         CommandHandler('ban_users', ban_users),
         CommandHandler('unban_users', unban_users),
+        MessageHandler(filters.UpdateType.MESSAGE &
+                       (filters.Mention(application.bot.name) | filters.ChatType.PRIVATE),
+                       mentioned
+        ),
+        MessageHandler(filters.UpdateType.MESSAGE &
+                       ((filters.TEXT & (filters.Entity('url') | filters.Entity('text_link'))) |
+                       (filters.CAPTION & (filters.CaptionEntity('url') | filters.CaptionEntity('text_link')))),
+                       check_message
+        ),
     ])  # group = 0 (default)
 
     application.add_error_handler(application_exception_handler)
 
     print("Application initialized")
     # ensure logging chats accesibility
-    loop.run_until_complete(send_to_logging_chats("Application initialized", application.bot))
+    await send_to_logging_chats("Application initialized", application.bot)
 
-    application.run_polling()
+    return application
 
 
-if __name__ == '__main__':
-    main()
+def main():
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    loop.run_until_complete(setup()).run_polling()

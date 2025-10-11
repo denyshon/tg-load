@@ -6,14 +6,20 @@ name = "pypi"
 [packages]
 requests = "*"
 flask = "*"
-python-telegram-bot = "==22.4"
+python-telegram-bot = ">=22.3"
 environs = ">=14.2.0"
 instaloader = {git = "https://github.com/denyshon/instaloader.git", ref = "tg-load"}
 browser-cookie3 = {git = "https://github.com/denyshon/browser_cookie3.git", ref = "tg-load"}
 yt-dlp = ">=2025.9.5"
+platformdirs = ">=4.4"
 
 [dev-packages]
 pytest = "*"
+
+[gcloud]
+fastapi = ">=0.118"
+uvicorn = ">=0.37"
+google-cloud-storage = ">=3.4.0"
 
 [requires]
 python_version = "3.13"
