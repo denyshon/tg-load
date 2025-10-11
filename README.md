@@ -134,7 +134,7 @@ gcloud config set project ${PROJECT_ID}
 
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com storage.googleapis.com
 ```
-Create a bucket (or use your project's one) and give PROJECT_ID-compute@developer.gserviceaccount.com the Storage Object User role.
+Create a bucket (or use your project's one) and give ${PROJECT_ID}-compute@developer.gserviceaccount.com the Storage Object User role.
 In the project directory, deploy from source:
 ```
 gcloud run deploy tg-load --source . --region ${REGION} --allow-unauthenticated --clear-base-image --set-env-vars TOKEN=${TOKEN} --set-env-vars STATE_BUCKET=${BUCKET} --min-instances 1
