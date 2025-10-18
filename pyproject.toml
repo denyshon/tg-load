@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tg-load"
-version = "1.1.0"
+version = "1.1.1"
 description = "A Telegram bot for downloading and sending content from links"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -16,7 +16,7 @@ dependencies = [
     "environs>=14.2.0",
     "instaloader @ git+https://github.com/denyshon/instaloader.git@tg-load",
     "browser-cookie3 @ git+https://github.com/denyshon/browser_cookie3.git@tg-load",
-    "yt-dlp>=2025.9.26",
+    "yt-dlp>=2025.10.14",
     "platformdirs>=4.4"
 ]
 requires-python = ">=3.13"

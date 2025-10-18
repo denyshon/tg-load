@@ -26,7 +26,7 @@ RUN git clone -b tg-load --single-branch --depth 1 https://github.com/denyshon/p
 
 RUN apt-get purge -y git && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
-ARG FFMPEG_URL=https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2025-09-26-14-41/ffmpeg-N-121245-gc605d2a7ae-linux64-gpl.tar.xz
+ARG FFMPEG_URL=https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2025-10-16-15-03/ffmpeg-N-121442-gcd4b01707d-linux64-gpl.tar.xz
 ARG FFMPEG_BIN_DIR=/opt/tools
 ENV FFMPEG_LOCATION=${FFMPEG_BIN_DIR}
 
