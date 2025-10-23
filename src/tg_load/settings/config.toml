@@ -5,12 +5,12 @@ logging_chat_ids = [-1002618523312]
 # A browser to import session from ("firefox" | "librewolf" | "safari"); leave empty to skip importing from browser
 browser = ""
 # If you can't (or don't want to) import session from your browser, please copy and paste the following cookie values from the browser's storage
-username = "52gyy8og5"
-csrftoken = "gZuX0f0AiimRyF5VXaTG5KyOvP6bSPQq"
-sessionid = "77228439383%3Ap2DdRhlixYAFMe%3A14%3AAYhkFqt_5-2QN_uw8Q-xO7nbcyJyeJxDt5GHhlRhtA"
-ds_user_id = "77228439383"
-mid = "aK4EoQALAAGXDBdagbdLXrj5qI-I"
-ig_did = "E49B1747-CDA8-4000-B3F6-2BA5353E4087"
+username = ""
+csrftoken = ""
+sessionid = ""
+ds_user_id = ""
+mid = ""
+ig_did = ""
 
 [timeouts]
 # Timeouts for download processes (in seconds), depending on the download type
