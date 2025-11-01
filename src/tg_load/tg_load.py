@@ -13,7 +13,7 @@ from types import MethodType
 from concurrent.futures import ProcessPoolExecutor, TimeoutError
 from functools import partial
 
-from .globals import DIR, ROOT_DIR, BUCKET, env, config, L_captions, L_no_captions, active_chat_ids, no_captions_chat_ids, banned_user_ids
+from .globals import DIR, ROOT_DIR, BUCKET, FEATURE_NAMES, env, config, L_captions, L_no_captions, active_chat_ids, no_captions_chat_ids, banned_user_ids, feature_state
 
 from telegram import Update, Message, InputMediaPhoto, InputMediaVideo, InputMediaAudio, InputMediaDocument, Bot
 from telegram.ext import Defaults, Application, ApplicationBuilder, CallbackContext, ContextTypes, CommandHandler, MessageHandler, filters
@@ -131,19 +131,17 @@ async def application_exception_handler(update: Optional[object], context: Callb
     await send_to_logging_chats(error, context.bot)
 
 
-async def format_message(message: str, context: ContextTypes.DEFAULT_TYPE, *args) -> str:
+async def format_message(message: str, context: ContextTypes.DEFAULT_TYPE, **kwargs) -> str:
     """Format `message` with the allowed replacement fields (see config.toml)."""
     res = message
     if "{bot_name}" in res:
         # WARNING: this generates a request to Telegram Bot API every time the bot's name is used
         # however, the bot is much more limited by instagram account restrictions, so it will never reach the Telegram's limit
-        bot_name = (await context.bot.get_my_name()).name
-        res = res.replace("{bot_name}", bot_name)
-    if "{bot_username}" in res:
-        bot_username = context.application.bot.name
-        res = res.replace("{bot_username}", bot_username)
-    for arg in args:
-        res = res.format(arg)
+        res = res.format(bot_name = (await context.bot.get_my_name()).name)
+    res = res.format(
+        bot_username = context.application.bot.name,
+        **kwargs
+    )
     return res
 
 
@@ -1195,6 +1193,11 @@ async def handle_message(message: Message,
     bool
         Whether a download has been initialized.
     """
+    download_inst = download_inst and feature_state.features["inst"]
+    download_yt_shorts = download_yt_shorts and feature_state.features["yt_shorts"]
+    download_ytm = download_ytm and feature_state.features["ytm"]
+    download_yt = download_yt and feature_state.features["yt"]
+    
     download_initialized = False
     text_orig = message.text if message.text else message.caption
     if text_orig:
@@ -1403,7 +1406,7 @@ async def mentioned(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def uncompressed(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    A handler for ``/uncompressed`` command. Send only uncompressed files for Instagram and YouTube Shorts links in the message and it's reply-to.
+    A handler for the ``/uncompressed`` command. Send only uncompressed files for Instagram and YouTube Shorts links in the message and it's reply-to.
 
     Ensure the bot is enabled in the chat and the message author is not banned; call ``handle_mention()`` with the following parameters:
     ``download_inst = True``
@@ -1421,7 +1424,7 @@ async def uncompressed(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    A handler for ``/audio`` command. Send only audios for YouTube and YouTube Shorts links in the message and it's reply-to.
+    A handler for the ``/audio`` command. Send only audios for YouTube and YouTube Shorts links in the message and it's reply-to.
 
     Ensure the bot is enabled in the chat and the message author is not banned; call ``handle_mention()`` with the following parameters:
     ``download_inst = False``
@@ -1438,7 +1441,7 @@ async def audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def admin_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    A handler for ``/admin_panel`` command.
+    A handler for the ``/admin_panel`` command.
 
     Reply with the corresponding message.
     For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
@@ -1455,11 +1458,12 @@ async def admin_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def enable_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    A handler for ``/enable_chats`` command. Enable the bot in the chats from the args.
-
+    A handler for the ``/enable_chats`` command. Enable the bot in the chats from the args.
+    
     Format: ``/enable_chats [chat_id] [chat_id] … [chat_id]``, chat_ids must be convertible to ``int``.
+    Ensure the command is used by an admin.
     For each chat, if the bot is already enabled in the chat, reply with the "no_need" message.
-    Otherwise, ensure the command is used by an admin, enable the bot in the chat (add the chat to `active_chat_ids`) and reply with the "success" message.
+    Otherwise, enable the bot in the chat (add the chat to `active_chat_ids`) and reply with the "success" message.
     For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
     """
     config_context = config["admin_messages"]["enable_chats"]
@@ -1467,17 +1471,21 @@ async def enable_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # update.effective_message is not None since it's a command handler
     message = update.effective_message
     if await ensure_admin(message, context):
+        if not context.args:
+            await message.reply_html(
+                    await format_message(config_context["no_args"], context)
+                )
         for arg in context.args:
             try:
                 chat_id = int(arg)
             except Exception:
                 await message.reply_html(
-                    await format_message(config_context["arg_not_int"], context, arg)
+                    await format_message(config_context["arg_not_int"], context, arg = arg)
                 )
             else:
                 if chat_id in active_chat_ids:
                     await message.reply_html(
-                        await format_message(config_context["no_need"], context, arg)
+                        await format_message(config_context["no_need"], context, arg = arg)
                     )
                 else:
                     future = await active_chat_ids.add(chat_id)
@@ -1485,17 +1493,18 @@ async def enable_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     future = await active_chat_ids.backup()
                     await future
                     await message.reply_html(
-                        await format_message(config_context["success"], context, arg)
+                        await format_message(config_context["success"], context, arg = arg)
                     )
 
 
 async def disable_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    A handler for ``/disable_chats`` command. Enable the bot in the chats from the args.
+    A handler for the ``/disable_chats`` command. Enable the bot in the chats from the args.
 
     Format: ``/disable_chats [chat_id] [chat_id] … [chat_id]``, chat_ids must be convertible to ``int``.
+    Ensure the command is used by an admin.
     For each chat, if the bot is already disabled in the chat, reply with the "no_need" message.
-    Otherwise, ensure the command is used by an admin, disable the bot in the chat (discard the chat from `active_chat_ids`) and reply with the "success" message.
+    Otherwise, disable the bot in the chat (discard the chat from `active_chat_ids`) and reply with the "success" message.
     For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
     """
     config_context = config["admin_messages"]["disable_chats"]
@@ -1503,17 +1512,21 @@ async def disable_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # update.effective_message is not None since it's a command handler
     message = update.effective_message
     if await ensure_admin(message, context):
+        if not context.args:
+            await message.reply_html(
+                    await format_message(config_context["no_args"], context)
+                )
         for arg in context.args:
             try:
                 chat_id = int(arg)
             except Exception:
                 await message.reply_html(
-                    await format_message(config_context["arg_not_int"], context, arg)
+                    await format_message(config_context["arg_not_int"], context, arg = arg)
                 )
             else:
                 if chat_id not in active_chat_ids:
                     await message.reply_html(
-                        await format_message(config_context["no_need"], context, arg)
+                        await format_message(config_context["no_need"], context, arg = arg)
                     )
                 else:
                     future = await active_chat_ids.discard(chat_id)
@@ -1521,17 +1534,18 @@ async def disable_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     future = await active_chat_ids.backup()
                     await future
                     await message.reply_html(
-                        await format_message(config_context["success"], context, arg)
+                        await format_message(config_context["success"], context, arg = arg)
                     )
 
 
 async def ban_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    A handler for ``/ban_users`` command. Ban users with ids from the args (prevent them from using the bot).
+    A handler for the ``/ban_users`` command. Ban users with ids from the args (prevent them from using the bot).
 
     Format: ``/ban_users [user_id] [user_id] … [user_id]``, user_ids must be convertible to ``int``.
+    Ensure the command is used by an admin.
     For each user, if they are already banned, reply with the "no_need" message. If the target user is an admin, reply with the "arg_admin" message.
-    Otherwise, ensure the command is used by an admin, ban the target user (add them to `banned_user_ids`) and reply with the "success" message.
+    Otherwise, ban the target user (add them to `banned_user_ids`) and reply with the "success" message.
     For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
     """
     config_context = config["admin_messages"]["ban_users"]
@@ -1539,19 +1553,23 @@ async def ban_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # update.effective_message is not None since it's a command handler
     message = update.effective_message
     if await ensure_admin(message, context):
+        if not context.args:
+            await message.reply_html(
+                    await format_message(config_context["no_args"], context)
+                )
         for arg in context.args:
             try:
                 user_id = int(arg)
             except Exception:
                 await message.reply_html(
-                    await format_message(config_context["arg_not_int"], context, arg)
+                    await format_message(config_context["arg_not_int"], context, arg = arg)
                 )
             else:
                 if not is_admin(user_id):
                     # the user we're going to ban is not an admin
                     if user_id in banned_user_ids:
                         await message.reply_html(
-                            await format_message(config_context["no_need"], context, arg)
+                            await format_message(config_context["no_need"], context, arg = arg)
                         )
                     else:
                         future = await banned_user_ids.add(user_id)
@@ -1559,21 +1577,22 @@ async def ban_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         future = await banned_user_ids.backup()
                         await future
                         await message.reply_html(
-                            await format_message(config_context["success"], context, arg)
+                            await format_message(config_context["success"], context, arg = arg)
                         )
                 else:
                     await message.reply_html(
-                        await format_message(config_context["arg_admin"], context, arg)
+                        await format_message(config_context["arg_admin"], context, arg = arg)
                     )
 
 
 async def unban_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    A handler for ``/unban_users`` command. Unban users with ids from the args (allow using the bot).
+    A handler for the ``/unban_users`` command. Unban users with ids from the args (allow using the bot).
 
     Format: ``/unban_users [user_id] [user_id] … [user_id]``, user_ids must be convertible to ``int``.
-    For each user, if they are already not banned, reply with the "no_need" message.
-    Otherwise, ensure the command is used by an admin, unban the target user (discard them from `banned_user_ids`) and reply with the "success" message.
+    Ensure the command is used by an admin.
+    For each user, if they are not already banned, reply with the "no_need" message.
+    Otherwise, unban the target user (discard them from `banned_user_ids`) and reply with the "success" message.
     For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
     """
     config_context = config["admin_messages"]["unban_users"]
@@ -1581,18 +1600,22 @@ async def unban_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # update.effective_message is not None since it's a command handler
     message = update.effective_message
     if await ensure_admin(message, context):
+        if not context.args:
+            await message.reply_html(
+                    await format_message(config_context["no_args"], context)
+                )
         for arg in context.args:
             try:
                 user_id = int(arg)
             except Exception:
                 await message.reply_html(
-                    await format_message(config_context["arg_not_int"], context, arg)
+                    await format_message(config_context["arg_not_int"], context, arg = arg)
                 )
             else:
                 # we don't need to check is_admin(user_id) here, as if an admin is somehow banned (which should be impossible), there must be an option to unban them (available for them as well)
                 if user_id not in banned_user_ids:
                     await message.reply_html(
-                        await format_message(config_context["no_need"], context, arg)
+                        await format_message(config_context["no_need"], context, arg = arg)
                     )
                 else:
                     future = await banned_user_ids.discard(user_id)
@@ -1600,8 +1623,100 @@ async def unban_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     future = await banned_user_ids.backup()
                     await future
                     await message.reply_html(
-                        await format_message(config_context["success"], context, arg)
+                        await format_message(config_context["success"], context, arg = arg)
                     )
+
+
+async def enable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    A handler for the ``/enable_features`` command. Enable features with shortnames from the args.
+
+    Format: ``/enable_features [feature_shortname] [feature_shortname] … [feature_shortname]``, feature_shortnames must be from ["inst", "yt_shorts", "ytm", "yt"].
+    Ensure the command is used by an admin.
+    For each feature, if it is already enabled, reply with the "no_need" message.
+    Otherwise, disable the feature and reply with the "success" message.
+    For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
+    """
+    config_context = config["admin_messages"]["enable_features"]
+    
+    # update.effective_message is not None since it's a command handler
+    message = update.effective_message
+    if await ensure_admin(message, context):
+        if not context.args:
+            await message.reply_html(
+                    await format_message(config_context["no_args"], context)
+                )
+        for arg in context.args:
+            if arg not in feature_state.features:
+                await message.reply_html(
+                    await format_message(config_context["arg_not_valid"], context, arg = arg)
+                )
+            else:
+                if feature_state.features[arg]:
+                    await message.reply_html(
+                        await format_message(config_context["no_need"], context, arg = arg, feature = FEATURE_NAMES[arg])
+                    )
+                else:
+                    future = await feature_state.set(arg, True)
+                    await future
+                    future = await feature_state.backup()
+                    await future
+                    await message.reply_html(
+                        await format_message(config_context["success"], context, arg = arg, feature = FEATURE_NAMES[arg])
+                    )
+                    for chat_id in active_chat_ids:
+                        if chat_id != update.effective_chat.id:
+                            await context.bot.send_message(
+                                chat_id,
+                                await format_message(config_context["notification"], context, arg = arg, feature = FEATURE_NAMES[arg]),
+                                parse_mode = 'HTML',
+                            )
+
+
+async def disable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    A handler for the ``/disable_features`` command. Enable features with shortnames from the args.
+
+    Format: ``/disable_features [feature_shortname] [feature_shortname] … [feature_shortname]``, feature_shortnames must be from ["inst", "yt_shorts", "ytm", "yt"].
+    Ensure the command is used by an admin.
+    For each feature, if it is already disabled, reply with the "no_need" message.
+    Otherwise, enable the feature and reply with the "success" message.
+    For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
+    """
+    config_context = config["admin_messages"]["disable_features"]
+    
+    # update.effective_message is not None since it's a command handler
+    message = update.effective_message
+    if await ensure_admin(message, context):
+        if not context.args:
+            await message.reply_html(
+                    await format_message(config_context["no_args"], context)
+                )
+        for arg in context.args:
+            if arg not in feature_state.features:
+                await message.reply_html(
+                    await format_message(config_context["arg_not_valid"], context, arg = arg)
+                )
+            else:
+                if not feature_state.features[arg]:
+                    await message.reply_html(
+                        await format_message(config_context["no_need"], context, arg = arg, feature = FEATURE_NAMES[arg])
+                    )
+                else:
+                    future = await feature_state.set(arg, False)
+                    await future
+                    future = await feature_state.backup()
+                    await future
+                    await message.reply_html(
+                        await format_message(config_context["success"], context, arg = arg, feature = FEATURE_NAMES[arg])
+                    )
+                    for chat_id in active_chat_ids:
+                        if chat_id != update.effective_chat.id:
+                            await context.bot.send_message(
+                                chat_id,
+                                await format_message(config_context["notification"], context, arg = arg, feature = FEATURE_NAMES[arg]),
+                                parse_mode = 'HTML',
+                            )
 
 
 async def setup() -> Application:
@@ -1633,6 +1748,8 @@ async def setup() -> Application:
         CommandHandler('disable_chats', disable_chats),
         CommandHandler('ban_users', ban_users),
         CommandHandler('unban_users', unban_users),
+        CommandHandler('enable_features', enable_features),
+        CommandHandler('disable_features', disable_features),
         MessageHandler(filters.UpdateType.MESSAGE &
                        (filters.Mention(application.bot.name) | filters.ChatType.PRIVATE),
                        mentioned

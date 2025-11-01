@@ -6,6 +6,7 @@ from environs import env
 from platformdirs import user_state_dir
 
 from .preference import Preference
+from .featurestate import FeatureState
 
 import instaloader
 from instaloader.__main__ import import_session
@@ -16,6 +17,13 @@ PROJECT_NAME = "tg_load"
 DIR = pathlib.Path(__file__).resolve().parents[0]
 ROOT_DIR = DIR.parents[1] if "src" in str(DIR) else DIR
 STATE_DIR = os.path.join(ROOT_DIR, "state") if ROOT_DIR != DIR else user_state_dir(PROJECT_NAME)
+
+FEATURE_NAMES = {
+    "inst" : "Instagram",
+    "yt_shorts": "YouTube Shorts",
+    "ytm": "YouTube Music",
+    "yt": "YouTube (audio)"
+}
 
 # prepare envs and configs
 env.read_env()
@@ -53,7 +61,8 @@ else:
             "mid": config["session_import"]["mid"],
             "ig_did": config["session_import"]["ig_did"]
         })
-        L.test_login()
+        if env.bool("TEST_LOGIN", default = True):
+            L.test_login()
 
 try:
     loop = asyncio.get_running_loop()
@@ -63,15 +72,12 @@ except RuntimeError:
 
 if env("STATE_BUCKET", default = None):
     from google.cloud import storage
-    
     BUCKET = storage.Client().bucket(env("STATE_BUCKET"))
-
-    active_chat_ids = Preference(os.path.join("state", "active_chat_ids.txt"), bucket = BUCKET)
-    no_captions_chat_ids = Preference(os.path.join("state", "no_captions_chat_ids.txt"), bucket = BUCKET)
-    banned_user_ids = Preference(os.path.join("state", "banned_user_ids.txt"), bucket = BUCKET)
 else:
     BUCKET = None
-    
-    active_chat_ids = Preference(os.path.join(STATE_DIR, "active_chat_ids.txt"))
-    no_captions_chat_ids = Preference(os.path.join(STATE_DIR, "no_captions_chat_ids.txt"))
-    banned_user_ids = Preference(os.path.join(STATE_DIR, "banned_user_ids.txt"))
+
+active_chat_ids = Preference(os.path.join(STATE_DIR, "active_chat_ids.txt"), bucket = BUCKET)
+no_captions_chat_ids = Preference(os.path.join(STATE_DIR, "no_captions_chat_ids.txt"), bucket = BUCKET)
+banned_user_ids = Preference(os.path.join(STATE_DIR, "banned_user_ids.txt"), bucket = BUCKET)
+
+feature_state = FeatureState(os.path.join(STATE_DIR, "features.json"), bucket = BUCKET)

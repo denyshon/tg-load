@@ -45,21 +45,45 @@ success = "Captions are now enabled in this chat!"
 [admin_messages]
 # All the non-error admin messages
 # Must be strings; {bot_name} and {bot_username} are available; certain HTML tags are available (https://core.telegram.org/bots/api#html-style); 0-1024 characters after entities parsing
-admin_commands = "Available admin commands:\n<code>/enable_chats</code> [chat_id] [chat_id] … [chat_id] - Enable the bot in the chats with the given IDs\n<code>/disable_chats</code> [chat_id] [chat_id] … [chat_id] - Disable the bot in the chats with the given IDs\n<code>/ban_users</code> [user_id] [user_id] … [user_id] -  Prevent the users with the given IDs from using the bot\n<code>/unban_users</code> [user_id] [user_id] … [user_id] - Allow the users with the given IDs using the bot"
+admin_commands = "Available admin commands:\n<code>/enable_chats</code> [chat_id] [chat_id] … [chat_id] - Enable the bot in the chats with the given IDs\n<code>/disable_chats</code> [chat_id] [chat_id] … [chat_id] - Disable the bot in the chats with the given IDs\n<code>/ban_users</code> [user_id] [user_id] … [user_id] -  Prevent the users with the given IDs from using the bot\n<code>/unban_users</code> [user_id] [user_id] … [user_id] - Allow the users with the given IDs using the bot\n<code>/enable_features</code> [feature_shortname] [feature_shortname] … [feature_shortname] - Enable features with shortnames from the args (<code>inst</code> | <code>yt_shorts</code> | <code>ytm</code> | <code>yt</code>)\n<code>/disable_features</code> [feature_shortname] [feature_shortname] … [feature_shortname] - Disable features with shortnames from the args (<code>inst</code> | <code>yt_shorts</code> | <code>ytm</code> | <code>yt</code>)"
 [admin_messages.enable_chats]
-no_need = "The bot is already enabled in the chat <code>{}</code>."
-success = "The bot has been enabled in the chat <code>{}</code>."
-arg_not_int = "The given id <code>{}</code> is not an integer"
+# {arg} is available
+no_args = "Arguments are required."
+arg_not_int = "The given id <code>{arg}</code> is not an integer."
+no_need = "The bot is already enabled in the chat <code>{arg}</code>."
+success = "The bot has been enabled in the chat <code>{arg}</code>."
 [admin_messages.disable_chats]
-no_need = "The bot is already disabled in the chat <code>{}</code>."
-success = "The bot has been disabled in the chat <code>{}</code>."
-arg_not_int = "The given id <code>{}</code> is not an integer"
+# {arg} is available
+no_args = "Arguments are required."
+arg_not_int = "The given id <code>{arg}</code> is not an integer."
+no_need = "The bot is already disabled in the chat <code>{arg}</code>."
+success = "The bot has been disabled in the chat <code>{arg}</code>."
 [admin_messages.ban_users]
-no_need = "The user <code>{}</code> is already banned."
-success = "The user <code>{}</code> has been banned."
-arg_not_int = "The given id <code>{}</code> is not an integer"
+# {arg} is available
+no_args = "Arguments are required."
+arg_not_int = "The given id <code>{arg}</code> is not an integer."
+no_need = "The user <code>{arg}</code> is already banned."
+success = "The user <code>{arg}</code> has been banned."
 arg_admin = "Sorry, you can't ban an admin :)"
 [admin_messages.unban_users]
-no_need = "The user <code>{}</code> is already not banned."
-success = "The user <code>{}</code> has been unbanned."
-arg_not_int = "The given id <code>{}</code> is not an integer"
+# {arg} is available
+no_args = "Arguments are required."
+arg_not_int = "The given id <code>{arg}</code> is not an integer."
+no_need = "The user <code>{arg}</code> is already not banned."
+success = "The user <code>{arg}</code> has been unbanned."
+[admin_messages.enable_features]
+# {arg} is available
+no_args = "Arguments are required."
+arg_not_valid = "The given argument <code>{arg}</code> is not a feature shortname."
+# {feature} is available
+no_need = "{feature} downloading is already enabled."
+success = "{feature} downloading has been enabled."
+notification = "It's back! {feature} downloading has been reenabled."
+[admin_messages.disable_features]
+# {arg} is available
+no_args = "Arguments are required."
+arg_not_valid = "The given argument <code>{arg}</code> is not a feature shortname."
+# {feature} is available
+no_need = "{feature} downloading is already disabled."
+success = "{feature} downloading has been disabled."
+notification = "Attention! {feature} downloading has been temporarily disabled. Sorry for the inconvenience."
