@@ -16,7 +16,7 @@ PROJECT_NAME = "tg_load"
 
 DIR = pathlib.Path(__file__).resolve().parents[0]
 ROOT_DIR = DIR.parents[1] if "src" in str(DIR) else DIR
-STATE_DIR = os.path.join(ROOT_DIR, "state") if ROOT_DIR != DIR else user_state_dir(PROJECT_NAME)
+STATE_DIR = "state" if ROOT_DIR != DIR or env("STATE_BUCKET", default = None) else user_state_dir(PROJECT_NAME)
 
 FEATURE_NAMES = {
     "inst" : "Instagram",
