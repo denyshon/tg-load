@@ -102,7 +102,7 @@ def sanitize_html_style(msg: str) -> str:
     return res
 
 
-async def send_to_logging_chats(msg: str, bot: Bot):
+async def send_to_logging_chats(msg: str, bot: Bot, **format_kwargs):
     """Send `msg` to the logging chats."""
     if not config["logging_chat_ids"]:
         return
@@ -110,7 +110,7 @@ async def send_to_logging_chats(msg: str, bot: Bot):
         try:
             await bot.send_message(
                 chat_id,
-                msg,
+                msg.format(**format_kwargs),
                 parse_mode = 'HTML',
             )
         except Exception as e:
@@ -599,6 +599,7 @@ async def download_post_and_reply(shortcode: str, message: Message, compress: bo
             future = await feature_state.backup()
             await future
             await send_to_active_chats(config["messages"]["notifications"]["feature_disabled"], message.get_bot(), feature = FEATURE_NAMES["inst"])
+            await send_to_logging_chats(config["messages"]["notifications"]["feature_disabled"], message.get_bot(), feature = FEATURE_NAMES["inst"])
     except Exception as e:
         print(
             f"An error occured when retrieving the post:\n{traceback.format_exc()}\nThe determined shortcode: {shortcode}",
@@ -655,6 +656,7 @@ async def download_post_and_reply(shortcode: str, message: Message, compress: bo
                 future = await feature_state.backup()
                 await future
                 await send_to_active_chats(config["messages"]["notifications"]["feature_disabled"], message.get_bot(), feature = FEATURE_NAMES["inst"])
+                await send_to_logging_chats(config["messages"]["notifications"]["feature_disabled"], message.get_bot(), feature = FEATURE_NAMES["inst"])
         except Exception as e:
             print(
                 f"An error occured when downloading the post {shortcode}:\n{traceback.format_exc()}",
@@ -766,6 +768,7 @@ async def download_storyitem_and_reply(story_item: StoryItem, message: Message, 
             future = await feature_state.backup()
             await future
             await send_to_active_chats(config["messages"]["notifications"]["feature_disabled"], message.get_bot(), feature = FEATURE_NAMES["inst"])
+            await send_to_logging_chats(config["messages"]["notifications"]["feature_disabled"], message.get_bot(), feature = FEATURE_NAMES["inst"])
     except Exception as e:
         print(
             f"An error occured when downloading the story {story_item.mediaid}:\n{traceback.format_exc()}",
@@ -881,6 +884,7 @@ async def download_stories_and_reply(profile: Profile, message: Message, compres
             future = await feature_state.backup()
             await future
             await send_to_active_chats(config["messages"]["notifications"]["feature_disabled"], message.get_bot(), feature = FEATURE_NAMES["inst"])
+            await send_to_logging_chats(config["messages"]["notifications"]["feature_disabled"], message.get_bot(), feature = FEATURE_NAMES["inst"])
     except Exception as e:
         print(
             f"An error occured when downloading stories for the profile {profile.username}:\n{traceback.format_exc()}",
@@ -1759,6 +1763,7 @@ async def enable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         await format_message(config_context["success"], context, arg = arg, feature = FEATURE_NAMES[arg])
                     )
                     await send_to_active_chats(config["messages"]["notifications"]["feature_enabled"], context.bot, [update.effective_chat.id], feature = FEATURE_NAMES[arg])
+                    await send_to_logging_chats(config["messages"]["notifications"]["feature_enabled"], context.bot, [update.effective_chat.id], feature = FEATURE_NAMES[arg])
 
 
 async def disable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1799,6 +1804,7 @@ async def disable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         await format_message(config_context["success"], context, arg = arg, feature = FEATURE_NAMES[arg])
                     )
                     await send_to_active_chats(config["messages"]["notifications"]["feature_disabled"], context.bot, [update.effective_chat.id], feature = FEATURE_NAMES[arg])
+                    await send_to_logging_chats(config["messages"]["notifications"]["feature_disabled"], context.bot, [update.effective_chat.id], feature = FEATURE_NAMES[arg])
 
 
 async def setup() -> Application:
