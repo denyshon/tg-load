@@ -16,11 +16,12 @@ from functools import partial
 from .globals import DIR, ROOT_DIR, BUCKET, FEATURE_NAMES, env, config, L_captions, L_no_captions, active_chat_ids, no_captions_chat_ids, banned_user_ids, feature_state
 
 from telegram import Update, Message, InputMediaPhoto, InputMediaVideo, InputMediaAudio, InputMediaDocument, Bot
+from telegram.error import Forbidden
 from telegram.ext import Defaults, Application, ApplicationBuilder, CallbackContext, ContextTypes, CommandHandler, MessageHandler, filters
 
 import instaloader
 from instaloader import Profile, StoryItem
-from instaloader.exceptions import InstaloaderException
+from instaloader.exceptions import InstaloaderException, AbortDownloadException
 
 import ytm
 from ytm.apis.YouTubeMusicDL.YouTubeMusicDL import YouTubeMusicDL
@@ -103,6 +104,8 @@ def sanitize_html_style(msg: str) -> str:
 
 async def send_to_logging_chats(msg: str, bot: Bot):
     """Send `msg` to the logging chats."""
+    if not config["logging_chat_ids"]:
+        return
     for chat_id in config["logging_chat_ids"]:
         try:
             await bot.send_message(
@@ -115,6 +118,22 @@ async def send_to_logging_chats(msg: str, bot: Bot):
                 return
             else:
                 print(traceback.format_exc())
+
+
+async def send_to_active_chats(msg: str, bot: Bot, chats_to_exclude = None, **format_kwargs):
+    """Send formatted `msg` to the active chats (except of `chats_to_exclude`). The type of `chats_to_exclude` must allow ``in`` usage."""
+    if not active_chat_ids:
+        return
+    for chat_id in active_chat_ids:
+        if not chats_to_exclude or chat_id not in chats_to_exclude:
+            try:
+                await bot.send_message(
+                    chat_id,
+                    msg.format(**format_kwargs),
+                    parse_mode = 'HTML',
+                )
+            except Forbidden:
+                pass
 
 
 async def application_exception_handler(update: Optional[object], context: CallbackContext):
@@ -131,17 +150,16 @@ async def application_exception_handler(update: Optional[object], context: Callb
     await send_to_logging_chats(error, context.bot)
 
 
-async def format_message(message: str, context: ContextTypes.DEFAULT_TYPE, **kwargs) -> str:
+async def format_message(message: str, context: ContextTypes.DEFAULT_TYPE = None, **kwargs) -> str:
     """Format `message` with the allowed replacement fields (see config.toml)."""
     res = message
     if "{bot_name}" in res:
         # WARNING: this generates a request to Telegram Bot API every time the bot's name is used
         # however, the bot is much more limited by instagram account restrictions, so it will never reach the Telegram's limit
         res = res.format(bot_name = (await context.bot.get_my_name()).name)
-    res = res.format(
-        bot_username = context.application.bot.name,
-        **kwargs
-    )
+    if "{bot_username}" in res:
+        res = res.format(bot_username = context.application.bot.name)
+    res = res.format(**kwargs)
     return res
 
 
@@ -188,7 +206,7 @@ async def ensure_not_banned_author(message: Message, context: ContextTypes.DEFAU
         await message.reply_html(
             await format_message(config_context["banned"], context)
         )
-    return res
+    return res                    
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -562,6 +580,25 @@ async def download_post_and_reply(shortcode: str, message: Message, compress: bo
         
         post = await post_from_shortcode_task
         await reply_chat_action_task
+    except AbortDownloadException as e:
+        try:
+            print(
+                f"A critical error occured when retrieving the post:\n{traceback.format_exc()}\nThe determined shortcode: {shortcode}",
+                file = sys.stderr
+            )
+            await message.reply_html(
+                f"A critical error occured when retrieving the post."
+            )
+            await send_to_logging_chats(
+                f"A critical error occured when retrieving the post:\n<pre><code class=\"language-log\">{sanitize_html_style(traceback.format_exc())}</code></pre>\nThe determined shortcode: <code>{sanitize_html_style(shortcode)}</code>",
+                message.get_bot()
+            )
+        finally:
+            future = await feature_state.set("inst", False)
+            await future
+            future = await feature_state.backup()
+            await future
+            await send_to_active_chats(config["messages"]["notifications"]["feature_disabled"], message.get_bot(), feature = FEATURE_NAMES["inst"])
     except Exception as e:
         print(
             f"An error occured when retrieving the post:\n{traceback.format_exc()}\nThe determined shortcode: {shortcode}",
@@ -599,6 +636,25 @@ async def download_post_and_reply(shortcode: str, message: Message, compress: bo
             
             await download_post_task
             await reply_chat_action_task
+        except AbortDownloadException as e:
+            try:
+                print(
+                    f"A critical error occured when downloading the post {shortcode}:\n{traceback.format_exc()}",
+                    file = sys.stderr
+                )
+                await message.reply_html(
+                    f"A critical error occured when downloading the post <code>{sanitize_html_style(shortcode)}</code>."
+                )
+                await send_to_logging_chats(
+                    f"A critical error occured when downloading the post <code>{sanitize_html_style(shortcode)}</code>:\n<pre><code class=\"language-log\">{sanitize_html_style(traceback.format_exc())}</code></pre>",
+                    message.get_bot()
+                )
+            finally:
+                future = await feature_state.set("inst", False)
+                await future
+                future = await feature_state.backup()
+                await future
+                await send_to_active_chats(config["messages"]["notifications"]["feature_disabled"], message.get_bot(), feature = FEATURE_NAMES["inst"])
         except Exception as e:
             print(
                 f"An error occured when downloading the post {shortcode}:\n{traceback.format_exc()}",
@@ -691,6 +747,25 @@ async def download_storyitem_and_reply(story_item: StoryItem, message: Message, 
         
         await download_storyitem_task
         await reply_chat_action_task
+    except AbortDownloadException as e:
+        try:
+            print(
+                f"A critical error occured when downloading the story {story_item.mediaid}:\n{traceback.format_exc()}",
+                file = sys.stderr
+            )
+            await message.reply_html(
+                f"A critical error occured when downloading the story <code>{sanitize_html_style(story_item.mediaid)}</code>."
+            )
+            await send_to_logging_chats(
+                f"A critical error occured when downloading the story <code>{sanitize_html_style(story_item.mediaid)}</code>:\n<pre><code class=\"language-log\">{sanitize_html_style(traceback.format_exc())}</code></pre>",
+                message.get_bot()
+            )
+        finally:
+            future = await feature_state.set("inst", False)
+            await future
+            future = await feature_state.backup()
+            await future
+            await send_to_active_chats(config["messages"]["notifications"]["feature_disabled"], message.get_bot(), feature = FEATURE_NAMES["inst"])
     except Exception as e:
         print(
             f"An error occured when downloading the story {story_item.mediaid}:\n{traceback.format_exc()}",
@@ -787,6 +862,25 @@ async def download_stories_and_reply(profile: Profile, message: Message, compres
         
         await download_stories_task
         await reply_chat_action_task
+    except AbortDownloadException as e:
+        try:
+            print(
+                f"A critical error occured when downloading stories for the profile {profile.username}:\n{traceback.format_exc()}",
+                file = sys.stderr
+            )
+            await message.reply_html(
+                f"A critical error occured when downloading stories for the profile <code>{sanitize_html_style(profile.username)}</code>."
+            )
+            await send_to_logging_chats(
+                f"A critical error occured when downloading stories for the profile <code>{sanitize_html_style(profile.username)}</code>:\n<pre><code class=\"language-log\">{sanitize_html_style(traceback.format_exc())}</code></pre>",
+                message.get_bot()
+            )
+        finally:
+            future = await feature_state.set("inst", False)
+            await future
+            future = await feature_state.backup()
+            await future
+            await send_to_active_chats(config["messages"]["notifications"]["feature_disabled"], message.get_bot(), feature = FEATURE_NAMES["inst"])
     except Exception as e:
         print(
             f"An error occured when downloading stories for the profile {profile.username}:\n{traceback.format_exc()}",
@@ -1664,13 +1758,7 @@ async def enable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     await message.reply_html(
                         await format_message(config_context["success"], context, arg = arg, feature = FEATURE_NAMES[arg])
                     )
-                    for chat_id in active_chat_ids:
-                        if chat_id != update.effective_chat.id:
-                            await context.bot.send_message(
-                                chat_id,
-                                await format_message(config_context["notification"], context, arg = arg, feature = FEATURE_NAMES[arg]),
-                                parse_mode = 'HTML',
-                            )
+                    await send_to_active_chats(config["messages"]["notifications"]["feature_enabled"], context.bot, [update.effective_chat.id], feature = FEATURE_NAMES[arg])
 
 
 async def disable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1710,13 +1798,7 @@ async def disable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     await message.reply_html(
                         await format_message(config_context["success"], context, arg = arg, feature = FEATURE_NAMES[arg])
                     )
-                    for chat_id in active_chat_ids:
-                        if chat_id != update.effective_chat.id:
-                            await context.bot.send_message(
-                                chat_id,
-                                await format_message(config_context["notification"], context, arg = arg, feature = FEATURE_NAMES[arg]),
-                                parse_mode = 'HTML',
-                            )
+                    await send_to_active_chats(config["messages"]["notifications"]["feature_disabled"], context.bot, [update.effective_chat.id], feature = FEATURE_NAMES[arg])
 
 
 async def setup() -> Application:

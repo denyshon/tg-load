@@ -41,6 +41,10 @@ success = "Captions are now disabled in this chat."
 [messages.enable_captions]
 no_need = "Captions are already enabled in this chat."
 success = "Captions are now enabled in this chat!"
+[messages.notifications]
+# {feature} is available
+feature_enabled = "It's back! {feature} downloading has been reenabled."
+feature_disabled = "Attention! {feature} downloading has been temporarily disabled. Sorry for the inconvenience."
 
 [admin_messages]
 # All the non-error admin messages
@@ -78,7 +82,6 @@ arg_not_valid = "The given argument <code>{arg}</code> is not a feature shortnam
 # {feature} is available
 no_need = "{feature} downloading is already enabled."
 success = "{feature} downloading has been enabled."
-notification = "It's back! {feature} downloading has been reenabled."
 [admin_messages.disable_features]
 # {arg} is available
 no_args = "Arguments are required."
@@ -86,4 +89,3 @@ arg_not_valid = "The given argument <code>{arg}</code> is not a feature shortnam
 # {feature} is available
 no_need = "{feature} downloading is already disabled."
 success = "{feature} downloading has been disabled."
-notification = "Attention! {feature} downloading has been temporarily disabled. Sorry for the inconvenience."
