@@ -123,17 +123,18 @@ class FeatureState:
                         if not isinstance(raw, dict):
                             raise ValueError("Unable to import the feature state from backup: File does not contain a JSON object")
                         self.__update_from_dict(raw)
-                    except Exception as e:
-                        print(e, file = sys.stderr)
+                    except Exception:
+                        print(traceback.format_exc(), file = sys.stderr)
         else:
             if self.blob.exists():
                 try:
-                    raw = self.blob.download_as_text(encoding = "utf-8")
+                    raw_text = self.blob.download_as_text(encoding = "utf-8")
+                    raw = json.loads(raw_text)
                     if not isinstance(raw, dict):
                         raise ValueError("Unable to import the feature state from backup: File does not contain a JSON object")
                     self.__update_from_dict(raw)
-                except Exception as e:
-                    print(e, file = sys.stderr)
+                except Exception:
+                    print(traceback.format_exc(), file = sys.stderr)
 
     async def backup(self) -> asyncio.Future:
         """Add a task to the queue to write `self.features` to `self.filepath`."""

@@ -117,7 +117,7 @@ async def send_to_logging_chats(msg: str, bot: Bot, **format_kwargs):
             if "empty" in str(e):
                 return
             else:
-                print(traceback.format_exc())
+                print(traceback.format_exc(), file = sys.stderr)
 
 
 async def send_to_active_chats(msg: str, bot: Bot, chats_to_exclude = None, **format_kwargs):
@@ -136,7 +136,7 @@ async def send_to_active_chats(msg: str, bot: Bot, chats_to_exclude = None, **fo
                 if "empty" in str(e):
                     return
                 else:
-                    print(traceback.format_exc())
+                    print(traceback.format_exc(), file = sys.stderr)
 
 
 async def application_exception_handler(update: Optional[object], context: CallbackContext):
@@ -1766,7 +1766,7 @@ async def enable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         await format_message(config_context["success"], context, arg = arg, feature = FEATURE_NAMES[arg])
                     )
                     await send_to_active_chats(config["messages"]["notifications"]["feature_enabled"], context.bot, [update.effective_chat.id], feature = FEATURE_NAMES[arg])
-                    await send_to_logging_chats(config["messages"]["notifications"]["feature_enabled"], context.bot, [update.effective_chat.id], feature = FEATURE_NAMES[arg])
+                    await send_to_logging_chats(config["messages"]["notifications"]["feature_enabled"], context.bot, feature = FEATURE_NAMES[arg])
 
 
 async def disable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1807,7 +1807,7 @@ async def disable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         await format_message(config_context["success"], context, arg = arg, feature = FEATURE_NAMES[arg])
                     )
                     await send_to_active_chats(config["messages"]["notifications"]["feature_disabled"], context.bot, [update.effective_chat.id], feature = FEATURE_NAMES[arg])
-                    await send_to_logging_chats(config["messages"]["notifications"]["feature_disabled"], context.bot, [update.effective_chat.id], feature = FEATURE_NAMES[arg])
+                    await send_to_logging_chats(config["messages"]["notifications"]["feature_disabled"], context.bot, feature = FEATURE_NAMES[arg])
 
 
 async def setup() -> Application:
