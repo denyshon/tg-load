@@ -132,8 +132,11 @@ async def send_to_active_chats(msg: str, bot: Bot, chats_to_exclude = None, **fo
                     msg.format(**format_kwargs),
                     parse_mode = 'HTML',
                 )
-            except Forbidden:
-                pass
+            except Exception as e:
+                if "empty" in str(e):
+                    return
+                else:
+                    print(traceback.format_exc())
 
 
 async def application_exception_handler(update: Optional[object], context: CallbackContext):
