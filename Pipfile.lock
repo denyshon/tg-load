@@ -181,12 +181,12 @@
         },
         "environs": {
             "hashes": [
-                "sha256:7d9151d0710fc1b02f68bec6863d804ed10121925fb658bbdcb9fc7ddf704f62",
-                "sha256:fcd1b0259a2ac1f9ce6e2d2bdbbd51483b83533c37cea1524d5d4abde611270a"
+                "sha256:1abd3e3a5721fb09797438d6c902bc2f35d4580dfaffe68b8ee588b67b504e13",
+                "sha256:f7b8f6fcf3301bc674bc9c03e39b5986d116126ffb96764efd34c339ed9464ee"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.9'",
-            "version": "==14.4.0"
+            "markers": "python_version >= '3.10'",
+            "version": "==14.5.0"
         },
         "flask": {
             "hashes": [
