@@ -10,7 +10,6 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
 - [environs](https://github.com/sloria/environs) module
 - [instaloader](https://github.com/instaloader/instaloader) module with the following PRs merged:
    * [#2577](https://github.com/instaloader/instaloader/pull/2577)
-   * [#2581](https://github.com/instaloader/instaloader/pull/2581)
    * [#2583](https://github.com/instaloader/instaloader/pull/2583)
 - [browser-cookie3](https://github.com/borisbabic/browser_cookie3) module with the following PRs merged:
    * (optionally) [#225](https://github.com/borisbabic/browser_cookie3/pull/225)

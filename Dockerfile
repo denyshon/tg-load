@@ -1,7 +1,7 @@
 FROM python:3.13-slim AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git curl ca-certificates xz-utils tini \
+    git curl unzip ca-certificates xz-utils tini \
  && rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -9,6 +9,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8080
 
 WORKDIR /app
+
+RUN curl -fsSL https://deno.land/install.sh | sh
+ENV PATH="/root/.deno/bin:${PATH}"
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
@@ -26,7 +29,7 @@ RUN git clone -b tg-load --single-branch --depth 1 https://github.com/denyshon/p
 
 RUN apt-get purge -y git && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
-ARG FFMPEG_URL=https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2025-10-24-15-57/ffmpeg-N-121491-g3115c0c0e6-linux64-gpl.tar.xz
+ARG FFMPEG_URL=https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2025-11-12-14-17/ffmpeg-N-121746-gf39884b3fd-linux64-gpl.tar.xz
 ARG FFMPEG_BIN_DIR=/opt/tools
 ENV FFMPEG_LOCATION=${FFMPEG_BIN_DIR}
 
