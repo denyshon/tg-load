@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tg-load"
-version = "1.2.4"
+version = "1.2.5"
 description = "A Telegram bot for downloading and sending content from links"
 readme = "README.md"
 license = { file = "LICENSE" }
