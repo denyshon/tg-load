@@ -78,14 +78,18 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
   Enable the bot in the chat
 - `/disable` [*admin only*]<br/>
   Disable the bot in the chat
-- `/enable_captions`<br/>
-  Enable Instagram caption downloading in the chat
-- `/disable_captions`<br/>
-  Disable Instagram caption downloading in the chat
 - `/uncompressed`<br/>
   Get uncompressed media from Instagram (*handles links in your message and in the message you're replying to*)
 - `/audio`<br/>
   Get audio from YouTube and YouTube Music (*handles links in your message and in the message you're replying to*)
+- `/enable_captions`<br/>
+  Enable Instagram caption downloading in the chat
+- `/disable_captions`<br/>
+  Disable Instagram caption downloading in the chat
+- `/enable_notifications`<br/>
+  Enable notifications (e.g., when a feature is enabled/disabled) in the chat
+- `/disable_notifications`<br/>
+  Disable notifications (e.g., when a feature is enabled/disabled) in the chat
 - `/admin_commands` [*admin only*]<br/>
   Get a list of available admin commands
 ### Admin commands
@@ -98,6 +102,14 @@ It is not recommended to include these commands in the bot's command list, but t
   Prevent the users with the given IDs from using the bot
 - `/unban_users [user_id] [user_id] … [user_id]` [*admin only*]<br>
   Allow the users with the given IDs to use the bot
+- `/enable_features [feature_shortname] [feature_shortname] … [feature_shortname]` [*admin only*]<br>
+  Enable features with shortnames from the args (`inst` | `yt_shorts` | `ytm` | `yt`)
+- `/disable_features [feature_shortname] [feature_shortname] … [feature_shortname]` [*admin only*]<br>
+  Disable features with shortnames from the args (`inst` | `yt_shorts` | `ytm` | `yt`)
+- `/send_notification [Notification content]` [*admin only*]<br>
+  Send a notification to the chats with notifications enabled
+- `/send_forced_notification [Notification content]` [*admin only*]<br>
+  Send a notification to all the active chats
 ### Mentions
 You can mention the bot to force handling of the message you are replying to. Please make sure to reply to the message containing link(s), not the one with downloaded content. Links in your message with the mention will also be handled as usual.
 ### Limitations

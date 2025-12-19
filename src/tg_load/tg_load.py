@@ -13,7 +13,7 @@ from types import MethodType
 from concurrent.futures import ProcessPoolExecutor, TimeoutError
 from functools import partial
 
-from .globals import DIR, ROOT_DIR, BUCKET, FEATURE_NAMES, env, config, L_captions, L_no_captions, active_chat_ids, no_captions_chat_ids, banned_user_ids, feature_state
+from .globals import DIR, ROOT_DIR, BUCKET, FEATURE_NAMES, env, config, L_captions, L_no_captions, active_chat_ids, no_captions_chat_ids, no_notifications_chat_ids, banned_user_ids, feature_state
 
 from telegram import Update, Message, InputMediaPhoto, InputMediaVideo, InputMediaAudio, InputMediaDocument, Bot
 from telegram.error import Forbidden
@@ -120,12 +120,17 @@ async def send_to_logging_chats(msg: str, bot: Bot, **format_kwargs):
                 print(traceback.format_exc(), file = sys.stderr)
 
 
-async def send_to_active_chats(msg: str, bot: Bot, chats_to_exclude = None, **format_kwargs):
+async def send_to_active_chats(msg: str, bot: Bot, chats_to_exclude = None, ignore_disabled_notifications = False, **format_kwargs):
     """Send formatted `msg` to the active chats (except of `chats_to_exclude`). The type of `chats_to_exclude` must allow ``in`` usage."""
+    config_context = config["messages"]["notifications"]
+
     if not active_chat_ids:
         return
+    if not ignore_disabled_notifications:
+        msg += config_context["disable_notifications_prompt"]
     for chat_id in active_chat_ids:
-        if not chats_to_exclude or chat_id not in chats_to_exclude:
+        if (not chats_to_exclude or chat_id not in chats_to_exclude) and \
+        (ignore_disabled_notifications or not no_notifications_chat_ids or chat_id not in no_notifications_chat_ids):
             try:
                 await bot.send_message(
                     chat_id,
@@ -159,10 +164,9 @@ async def format_message(message: str, context: ContextTypes.DEFAULT_TYPE = None
     if "{bot_name}" in res:
         # WARNING: this generates a request to Telegram Bot API every time the bot's name is used
         # however, the bot is much more limited by instagram account restrictions, so it will never reach the Telegram's limit
-        res = res.format(bot_name = (await context.bot.get_my_name()).name)
-    if "{bot_username}" in res:
-        res = res.format(bot_username = context.application.bot.name)
-    res = res.format(**kwargs)
+        res = res.format(bot_name = (await context.bot.get_my_name()).name, bot_username = context.application.bot.name, **kwargs)
+    else:
+        res = res.format(bot_username = context.application.bot.name, **kwargs)
     return res
 
 
@@ -300,7 +304,7 @@ async def disable_captions(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     A handler for ``/disable_captions`` command. Disable captions for Instagram posts in the chat where the command has been used.
 
-    Ensure the bot is enabled in the chat the command us used by a non-banned user.
+    Ensure that the bot is enabled in the chat and the command is used by a non-banned user.
     If captions are already disabled in the chat, reply with the "no_need" message.
     Otherwise, disable captions in the chat (add the chat to `no_captions_chat_ids`) and reply with the "success" message.
     For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
@@ -328,7 +332,7 @@ async def enable_captions(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     A handler for ``/enable_captions`` command. Enable captions for Instagram posts in the chat where the command has been used.
 
-    Ensure the bot is enabled in the chat the command us used by a non-banned user.
+    Ensure that the bot is enabled in the chat and the command is used by a non-banned user.
     If captions are already enabled in the chat, reply with the "no_need" message.
     Otherwise, enable captions in the chat (discard the chat from `no_captions_chat_ids`) and reply with the "success" message.
     For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
@@ -350,6 +354,89 @@ async def enable_captions(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await message.reply_html(
                 await format_message(config_context["success"], context)
             )
+
+
+async def disable_notifications(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    A handler for ``/disable_notifications`` command. Disable notifications in the chat where the command has been used.
+
+    Ensure that the bot is enabled in the chat and the command is used by a non-banned user.
+    If notifications are already disabled in the chat, reply with the "no_need" message.
+    Otherwise, disable notifications in the chat (add the chat to `no_notifications_chat_ids`) and reply with the "success" message.
+    For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
+    """
+    config_context = config["messages"]["disable_notifications"]
+    
+    # update.effective_message is not None since it's a command handler
+    message = update.effective_message
+    if await ensure_active_chat(message, context) and await ensure_not_banned_author(message, context):
+        if update.effective_chat.id in no_notifications_chat_ids:
+            await message.reply_html(
+                await format_message(config_context["no_need"], context)
+            )
+        else:
+            future = await no_notifications_chat_ids.add(update.effective_chat.id)
+            await future
+            future = await no_notifications_chat_ids.backup()
+            await future
+            await message.reply_html(
+                await format_message(config_context["success"], context)
+            )
+
+
+async def enable_notifications(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    A handler for ``/enable_notifications`` command. Enable notifications in the chat where the command has been used.
+
+    Ensure that the bot is enabled in the chat and the command is used by a non-banned user.
+    If notifications are already enabled in the chat, reply with the "no_need" message.
+    Otherwise, enable notifications in the chat (discard the chat from `no_notifications_chat_ids`) and reply with the "success" message.
+    For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
+    """
+    config_context = config["messages"]["enable_notifications"]
+    
+    # update.effective_message is not None since it's a command handler
+    message = update.effective_message
+    if await ensure_active_chat(message, context) and await ensure_not_banned_author(message, context):
+        if update.effective_chat.id not in no_notifications_chat_ids:
+            await message.reply_html(
+                await format_message(config_context["no_need"], context)
+            )
+        else:
+            future = await no_notifications_chat_ids.discard(update.effective_chat.id)
+            await future
+            future = await no_notifications_chat_ids.backup()
+            await future
+            await message.reply_html(
+                await format_message(config_context["success"], context)
+            )
+
+
+async def state(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    A handler for ``/state`` command.
+
+    Reply with a message specifying the bot's feature state.
+    For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
+    """
+    config_context = config["messages"]["state"]
+
+    state_msg = ""
+    for feature in feature_state.features:
+        name = FEATURE_NAMES[feature]
+        state = config_context["enabled"] if feature_state.features[feature] else config_context["disabled"]
+        emoji = config_context["enabled_emoji"] if feature_state.features[feature] else config_context["disabled_emoji"]
+        state_msg += await format_message(config_context["feature_line"], context, name = name, state = state, emoji = emoji)
+    if state_msg:
+        state_msg = state_msg[:-1]
+    if update.effective_chat.id in no_notifications_chat_ids:
+        state_msg += config_context["enable_notifications_prompt"]
+    
+    # update.effective_message is not None since it's a command handler
+    message = update.effective_message
+    await message.reply_html(
+        await format_message(state_msg, context)
+    )
 
 
 async def reply_media(target: str, message: Message, compress: bool = True):
@@ -1544,7 +1631,7 @@ async def admin_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     A handler for the ``/admin_panel`` command.
 
-    Reply with the corresponding message.
+    Reply with the corresponding message(s).
     For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
     """
     config_context = config["admin_messages"]
@@ -1552,9 +1639,13 @@ async def admin_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # update.effective_message is not None since it's a command handler
     message = update.effective_message
     if await ensure_admin(message, context):
-        await message.reply_html(
+        reply = await message.reply_html(
             await format_message(config_context["admin_commands"], context)
         )
+        if "admin_commands_2" in config_context:
+            await reply.reply_html(
+                await format_message(config_context["admin_commands_2"], context)
+            )
 
 
 async def enable_chats(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1745,8 +1836,8 @@ async def enable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if await ensure_admin(message, context):
         if not context.args:
             await message.reply_html(
-                    await format_message(config_context["no_args"], context)
-                )
+                await format_message(config_context["no_args"], context)
+            )
         for arg in context.args:
             if arg not in feature_state.features:
                 await message.reply_html(
@@ -1786,8 +1877,8 @@ async def disable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if await ensure_admin(message, context):
         if not context.args:
             await message.reply_html(
-                    await format_message(config_context["no_args"], context)
-                )
+                await format_message(config_context["no_args"], context)
+            )
         for arg in context.args:
             if arg not in feature_state.features:
                 await message.reply_html(
@@ -1808,6 +1899,63 @@ async def disable_features(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     )
                     await send_to_active_chats(config["messages"]["notifications"]["feature_disabled"], context.bot, [update.effective_chat.id], feature = FEATURE_NAMES[arg])
                     await send_to_logging_chats(config["messages"]["notifications"]["feature_disabled"], context.bot, feature = FEATURE_NAMES[arg])
+
+
+async def send_notification(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    A handler for the ``/send_notification`` command. Send a notification to the chats with notifications enabled.
+
+    Format: ``/send_notification [Notification content]``.
+    Ensure the command is used by an admin.
+    Send the specified notification to the chats with notifications enabled and reply with the "success" message.
+    For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
+    """
+    config_context = config["admin_messages"]["send_notification"]
+    
+    # update.effective_message is not None since it's a command handler
+    message = update.effective_message
+    if await ensure_admin(message, context):
+        notification = message.text_html[len("/send_notification"):].lstrip(" \n")
+
+        if not notification:
+            await message.reply_html(
+                await format_message(config_context["no_arg"], context)
+            )
+        else:
+            await send_to_active_chats(notification, context.bot, [update.effective_chat.id])
+            await message.reply_html(
+                await format_message(config_context["success"], context)
+            )
+            await send_to_logging_chats("Regular Notification:\n" + notification, context.bot)
+
+
+async def send_forced_notification(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    A handler for the ``/send_forced_notification`` command. Send a notification to all the active chats.
+
+    Format: ``/send_forced_notification [Notification content]``.
+    Ensure the command is used by an admin.
+    Send the specified notification to all the active chats and reply with the "success" message.
+    For reference, see https://docs.python-telegram-bot.org/en/stable/telegram.ext.basehandler.html#telegram.ext.BaseHandler
+    """
+    config_context = config["admin_messages"]["send_notification"]
+    
+    # update.effective_message is not None since it's a command handler
+    message = update.effective_message
+    if await ensure_admin(message, context):
+        notification = message.text_html[len("/send_forced_notification"):].lstrip(" \n")
+        print(notification)
+
+        if not notification:
+            await message.reply_html(
+                await format_message(config_context["no_arg"], context)
+            )
+        else:
+            await send_to_active_chats(notification, context.bot, [update.effective_chat.id], ignore_disabled_notifications = True)
+            await message.reply_html(
+                await format_message(config_context["success"], context)
+            )
+            await send_to_logging_chats("Forced Notification:\n" + notification, context.bot)
 
 
 async def setup() -> Application:
@@ -1832,6 +1980,9 @@ async def setup() -> Application:
         CommandHandler('disable', disable),
         CommandHandler('disable_captions', disable_captions),
         CommandHandler('enable_captions', enable_captions),
+        CommandHandler('disable_notifications', disable_notifications),
+        CommandHandler('enable_notifications', enable_notifications),
+        CommandHandler('state', state),
         CommandHandler('uncompressed', uncompressed),
         CommandHandler('audio', audio),
         CommandHandler('admin_commands', admin_commands),
@@ -1841,6 +1992,8 @@ async def setup() -> Application:
         CommandHandler('unban_users', unban_users),
         CommandHandler('enable_features', enable_features),
         CommandHandler('disable_features', disable_features),
+        CommandHandler('send_notification', send_notification),
+        CommandHandler('send_forced_notification', send_forced_notification),
         MessageHandler(filters.UpdateType.MESSAGE &
                        (filters.Mention(application.bot.name) | filters.ChatType.PRIVATE),
                        mentioned

@@ -6,13 +6,17 @@ enable
 Enable me in this chat (admin only)
 disable
 Disable me in this chat (admin only)
-enable_captions
-Enable Instagram caption downloading in this chat
-disable_captions
-Disable Instagram caption downloading in this chat
 uncompressed
 Get uncompressed media from Instagram
 audio
 Get audio from YouTube and YouTube Music
+enable_captions
+Enable Instagram caption downloading in this chat
+disable_captions
+Disable Instagram caption downloading in this chat
+enable_notifications
+Enable notifications in this chat
+disable_notifications
+Disable notifications in this chat
 admin_commands
 Get a list of admin commands (admin only)

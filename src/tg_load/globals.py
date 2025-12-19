@@ -78,6 +78,7 @@ else:
 
 active_chat_ids = Preference(os.path.join(STATE_DIR, "active_chat_ids.txt"), bucket = BUCKET)
 no_captions_chat_ids = Preference(os.path.join(STATE_DIR, "no_captions_chat_ids.txt"), bucket = BUCKET)
+no_notifications_chat_ids = Preference(os.path.join(STATE_DIR, "no_notifications_chat_ids.txt"), bucket = BUCKET)
 banned_user_ids = Preference(os.path.join(STATE_DIR, "banned_user_ids.txt"), bucket = BUCKET)
 
 feature_state = FeatureState(os.path.join(STATE_DIR, "features.json"), bucket = BUCKET)

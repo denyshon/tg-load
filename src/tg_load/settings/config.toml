@@ -22,8 +22,8 @@ short = 180
 [messages]
 # All the non-error public messages
 # Must be strings; {bot_name} and {bot_username} are available; certain HTML tags are available (https://core.telegram.org/bots/api#html-style); 0-1024 characters after entities parsing
-start = "Hi, welcome to {bot_name}!\nCurrently the bot is private, which means only authorized administrators can enable it for certain chats. However, it's open-source, so you can host your own instance at any time! See https://github.com/denyshon/tg-load"
-help = "Tired of opening every single link sent by your friends? We too. From now on, you don't need that.\nJust add {bot_name} to your group, /enable it, and get all the supported content directly to your chat! {bot_name} initializes downloads automatically, but if you want to attract its attention to a specific message, just mention {bot_username} replying to that message.\nCurrently supported: Instagram, YouTube Music, YouTube (audio and YouTube Shorts).\nAdditional commands:\n/enable_captions - Enable Instagram caption downloading in this chat\n/disable_captions - Disable Instagram caption downloading in this chat\n/uncompressed - Get uncompressed media from Instagram (uses links in your message and in the message you're replying to)\n/audio - Get audio from YouTube and YouTube Music (uses links in your message and in the message you're replying to)"
+start = "Hi, welcome to <strong>{bot_name}</strong>!\nCurrently the bot is private, which means only authorized administrators can enable it for certain chats. However, it's open-source, so you can host your own instance at any time! See https://github.com/denyshon/tg-load"
+help = "<em>Tired of opening every single link sent by your friends? We too. From now on, you don't need that.</em>\n\nJust add <strong>{bot_name}</strong> to your group, /enable it, and get all the supported content directly to your chat!\n{bot_name} initializes downloads automatically, but if you want to attract its attention to a specific message, just mention {bot_username} replying to that message.\n\n<strong>Currently supported:</strong> Instagram, YouTube Music, YouTube (audio and YouTube Shorts).\n<strong>Additional commands:</strong>\n/uncompressed - Get uncompressed media from Instagram (uses links in your message and in the message you're replying to)\n/audio - Get audio from YouTube and YouTube Music (uses links in your message and in the message you're replying to)\n/enable_captions - Enable Instagram caption downloading in this chat\n/disable_captions - Disable Instagram caption downloading in this chat"
 not_enabled = "Sorry, {bot_name} is not enabled in this chat. Please first use /enable"
 private_not_enabled = "Sorry, {bot_name} is not enabled in this chat."
 banned = "Sorry, you are banned from using {bot_name}."
@@ -41,15 +41,31 @@ success = "Captions are now disabled in this chat."
 [messages.enable_captions]
 no_need = "Captions are already enabled in this chat."
 success = "Captions are now enabled in this chat!"
+[messages.disable_notifications]
+no_need = "Notifications are already disabled in this chat."
+success = "Notifications are now disabled in this chat. Use /state to check the bot's feature state."
+[messages.enable_notifications]
+no_need = "Notifications are already enabled in this chat."
+success = "Notifications are now enabled in this chat!"
 [messages.notifications]
+disable_notifications_prompt = "\n\n<em>To turn off these notifications, use /disable_notifications. You'll still be able to check the bot's feature state with /state.</em>"
 # {feature} is available
 feature_enabled = "It's back! {feature} downloading has been reenabled."
 feature_disabled = "Attention! {feature} downloading has been temporarily disabled. Sorry for the inconvenience."
+[messages.state]
+enabled = "enabled"
+disabled = "disabled"
+enabled_emoji = "✅"
+disabled_emoji = "❌"
+enable_notifications_prompt = "\n\n<em>/enable_notifications in this chat and stay tuned!</em>"
+# {name}, {state} (enabled/disabled from above) and {emoji} (enabled_emoji/disabled_emoji from above) are available
+feature_line = "{emoji} <strong>{name}</strong>: {state}\n"
 
 [admin_messages]
 # All the non-error admin messages
 # Must be strings; {bot_name} and {bot_username} are available; certain HTML tags are available (https://core.telegram.org/bots/api#html-style); 0-1024 characters after entities parsing
 admin_commands = "Available admin commands:\n<code>/enable_chats</code> [chat_id] [chat_id] … [chat_id] - Enable the bot in the chats with the given IDs\n<code>/disable_chats</code> [chat_id] [chat_id] … [chat_id] - Disable the bot in the chats with the given IDs\n<code>/ban_users</code> [user_id] [user_id] … [user_id] -  Prevent the users with the given IDs from using the bot\n<code>/unban_users</code> [user_id] [user_id] … [user_id] - Allow the users with the given IDs using the bot\n<code>/enable_features</code> [feature_shortname] [feature_shortname] … [feature_shortname] - Enable features with shortnames from the args (<code>inst</code> | <code>yt_shorts</code> | <code>ytm</code> | <code>yt</code>)\n<code>/disable_features</code> [feature_shortname] [feature_shortname] … [feature_shortname] - Disable features with shortnames from the args (<code>inst</code> | <code>yt_shorts</code> | <code>ytm</code> | <code>yt</code>)"
+admin_commands_2 = "<code>/send_notification</code> [Notification content] - Send a notification to the chats with notifications enabled\n<code>/send_forced_notification</code> [Notification content] - Send a notification to all the active chats"
 [admin_messages.enable_chats]
 # {arg} is available
 no_args = "Arguments are required."
@@ -89,3 +105,6 @@ arg_not_valid = "The given argument <code>{arg}</code> is not a feature shortnam
 # {feature} is available
 no_need = "{feature} downloading is already disabled."
 success = "{feature} downloading has been disabled."
+[admin_messages.send_notification]
+no_arg = "Notification content is required."
+success = "The notification has been sent."
