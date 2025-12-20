@@ -59,7 +59,7 @@ To run the bot:
   ```
   tg-load
   ```
-- If you haven't installed *tg-load*, in the project directory execute:
+- If you haven't installed *tg-load*, in the project directory execute
   ```
   set PYTHONPATH=src
   ```
