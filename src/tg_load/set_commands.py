@@ -17,7 +17,9 @@ def main():
     
     application = ApplicationBuilder().token(env("TOKEN")).build()
 
-    commands_path = os.path.join(DIRECTORY, "settings", "commands.txt")
+    commands_default_path = os.path.join(DIRECTORY, "settings", "commands.default.txt")
+    commands_override_path = os.path.join(DIRECTORY, "settings", "commands.txt")
+    commands_path = commands_override_path if os.path.isfile(commands_override_path) else commands_default_path
     with open(commands_path, "r") as file:
         lines = [line.strip() for line in file]
 
@@ -28,6 +30,8 @@ def main():
     loop.run_until_complete(
         application.bot.set_my_commands(commands)
     )
+
+    input("Press Enter to close this window: ")
 
 
 if __name__ == '__main__':

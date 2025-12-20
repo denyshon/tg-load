@@ -5,6 +5,7 @@ import tomllib
 from environs import env
 from platformdirs import user_state_dir
 
+from .utils import deep_merge
 from .preference import Preference
 from .featurestate import FeatureState
 
@@ -25,11 +26,17 @@ FEATURE_NAMES = {
     "yt": "YouTube (audio)"
 }
 
-# prepare envs and configs
+# Prepare envs
 env.read_env()
-config_path = os.path.join(DIR, "settings", "config.toml")
-with open(config_path, 'rb') as config_file:
-    config = tomllib.load(config_file)
+
+# Prepare configs
+config_default_path = os.path.join(DIR, "settings", "config.default.toml")
+with open(config_default_path, 'rb') as config_default_file:
+    config = tomllib.load(config_default_file)
+config_override_path = os.path.join(DIR, "settings", "config.toml")
+with open(config_override_path, 'rb') as config_override_file:
+    config_override = tomllib.load(config_override_file)
+    config = deep_merge(config, config_override)
 
 L_captions = instaloader.Instaloader(
     quiet = True,

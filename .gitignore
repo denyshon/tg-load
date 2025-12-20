@@ -1,5 +1,7 @@
 .env
 state
 ffmpeg
+src/tg_load/settings/config.toml
+src/tg_load/settings/commands.txt
 src/tg_load/settings/youtube_cookies.txt
 dev
