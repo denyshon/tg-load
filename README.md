@@ -19,33 +19,33 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
   * [#32](https://github.com/tombulled/python-youtube-music/pull/32)
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) module with ffmpeg and ffprobe custom builds
 
-## Recommended installation and setting up
+## Recommended installation and setup
 1. Install the latest version of Python from the [official website](https://www.python.org/downloads/) with PIP included.
 2. [Install Git](https://github.com/git-guides/install-git).
 3. In the system command prompt, run the following as an administrator:<br/>
    ```
    pip install git+https://github.com/denyshon/tg-load
    ```
-5. Install https://github.com/denyshon/python-youtube-music/tree/tg-load with YouTubeMusicDL support as described in its README.
-6. [Download an ffmpeg custom build](https://github.com/yt-dlp/FFmpeg-Builds) for [yt-dlp](https://github.com/yt-dlp/yt-dlp), that corresponds to your yt-dlp version.
-7. In the project root folder, create a `.env` file with the following structure:
+4. Install https://github.com/denyshon/python-youtube-music/tree/tg-load with YouTubeMusicDL support as described in its README.
+5. [Download an ffmpeg custom build](https://github.com/yt-dlp/FFmpeg-Builds) for [yt-dlp](https://github.com/yt-dlp/yt-dlp), that corresponds to your yt-dlp version.
+6. In the project root folder, create a `.env` file with the following structure:
    ```
    TOKEN=''
    FFMPEG_LOCATION=''
    ```
-8. Specify your bot's token and the ffmpeg custom build location in the .env file. The path may be absolute or relative, and must lead to the `bin` folder. Also, make sure to escape `\`. For example, if you placed ffmpeg in your working directory, the location will be `ffmpeg/bin` (or `ffmpeg\\bin` for Windows). **Warning:** for the console application, it is recommended to use an absolute path only.
-9. Optionally, add
+7. Specify your bot's token and the ffmpeg custom build location in the .env file. The path may be absolute or relative, and must lead to the `bin` folder. Also, make sure to escape `\`. For example, if you placed ffmpeg in your working directory, the location will be `ffmpeg/bin` (or `ffmpeg\\bin` for Windows). **Warning:** for the console application, it is recommended to use an absolute path only.
+8. Optionally, add
    ```
    TEST_LOGIN=False
    ```
    This has effect only if browser is not set in config.toml, and means that exactly one test login will be performed after loading the session. Default is true.
-10. In `src/tg_load/settings/`, create `config.toml`. Values specified there will override values from `src/tg_load/settings/config.default.toml`. You must specify:
+9. In `src/tg_load/settings/`, create `config.toml`. Values specified there will override values from `src/tg_load/settings/config.default.toml`. You must specify:
    - `admin_ids`
    - Either `browser` or `username`, `csrftoken`, `sessionid`, `ds_user_id`, `mid` and `ig_did`.
    It is also recommended to specify `logging_chat_ids`.
-11. In `src/tg_load/settings/config.toml`, you can also specify the texts of the messages sent by the bot. Make sure to follow the structure of `src/tg_load/settings/config.default.toml` and read the comments there.
-12. You can pass YouTube cookies to login via `src/tg_load/settings/youtube_cookies.txt`. See https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies
-13. You may also want to set a command list for your bot. You can specify it in `src/tg_load/settings/commands.txt` (or stick to `src/tg_load/settings/commands.default.txt`) and then set the commands by running `src/tg_load/set_commands.py`.
+10. In `src/tg_load/settings/config.toml`, you can also specify the texts of the messages sent by the bot. Make sure to follow the structure of `src/tg_load/settings/config.default.toml` and read the comments there.
+11. You can pass YouTube cookies to login via `src/tg_load/settings/youtube_cookies.txt`. See https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies
+12. You may also want to set a command list for your bot. You can specify it in `src/tg_load/settings/commands.txt` (or stick to `src/tg_load/settings/commands.default.txt`) and then set the commands by running `src/tg_load/set_commands.py`.
     - If `src/tg_load/settings/commands.txt` doesn't exist, `src/tg_load/settings/commands.default.txt` will be used. Otherwise, `src/tg_load/settings/commands.default.txt` will be ignored!
     - Each of the commands must be in a separate line, followed by another line with the description.
     - If you installed *tg-load* using a package manager, you can also execute
