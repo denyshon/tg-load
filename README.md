@@ -19,7 +19,7 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
   * [#32](https://github.com/tombulled/python-youtube-music/pull/32)
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) module with ffmpeg and ffprobe custom builds
 
-## Recommended installation
+## Recommended installation and setting up
 1. Install the latest version of Python from the [official website](https://www.python.org/downloads/) with PIP included.
 2. [Install Git](https://github.com/git-guides/install-git).
 3. In the system command prompt, run the following as an administrator:<br/>
@@ -39,33 +39,38 @@ Currently supported: **Instagram**, **YouTube Music**, **YouTube** (audio and **
    TEST_LOGIN=False
    ```
    This has effect only if browser is not set in config.toml, and means that exactly one test login will be performed after loading the session. Default is true.
+10. In `src/tg_load/settings/`, create `config.toml`. Values specified there will override values from `src/tg_load/settings/config.default.toml`. You must specify:
+   - `admin_ids`
+   - Either `browser` or `username`, `csrftoken`, `sessionid`, `ds_user_id`, `mid` and `ig_did`.
+   It is also recommended to specify `logging_chat_ids`.
+11. In `src/tg_load/settings/config.toml`, you can also specify the texts of the messages sent by the bot. Make sure to follow the structure of `src/tg_load/settings/config.default.toml` and read the comments there.
+12. You can pass YouTube cookies to login via `src/tg_load/settings/youtube_cookies.txt`. See https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies
+13. You may also want to set a command list for your bot. You can specify it in `src/tg_load/settings/commands.txt` (or stick to `src/tg_load/settings/commands.default.txt`) and then set the commands by running `src/tg_load/set_commands.py`.
+    - If `src/tg_load/settings/commands.txt` doesn't exist, `src/tg_load/settings/commands.default.txt` will be used. Otherwise, `src/tg_load/settings/commands.default.txt` will be ignored!
+    - Each of the commands must be in a separate line, followed by another line with the description.
+    - If you installed *tg-load* using a package manager, you can also execute
+      ```
+      tg-load-set-commands
+      ```
 
 ## Starting
-- You can specify the texts of the messages sent by the bot in `src/tg_load/settings/config.toml`. Make sure to read the comments there.
-- You can pass YouTube cookies to login via `src/tg_load/settings/youtube_cookies.txt`. See https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies
-- You may also want to set a command list for your bot. You can specify it in `src/tg_load/settings/commands.txt`, and then set the commands by running `src/tg_load/set_commands.py`.
-  - Each of the commands must be in a separate line, followed by another line with the description.
-  - If you installed *tg-load* using a package manager, you can also execute
-    ```
-    tg-load-set-commands
-    ```
-- To run the bot:
-  - If you installed *tg-load* via pip, simply execute
-    ```
-    tg-load
-    ```
-  - If you haven't installed *tg-load*, in the project directory execute:
-    ```
-    set PYTHONPATH=src
-    ```
-    on Windows, or
-    ```
-    PYTHONPATH=src
-    ```
-    on Unix, and then
-    ```
-    python -m tg_load
-    ```
+To run the bot:
+- If you installed *tg-load* via pip, simply execute
+  ```
+  tg-load
+  ```
+- If you haven't installed *tg-load*, in the project directory execute:
+  ```
+  set PYTHONPATH=src
+  ```
+  on Windows, or
+  ```
+  PYTHONPATH=src
+  ```
+  on Unix, and then
+  ```
+  python -m tg_load
+  ```
 
 
 ## Usage
